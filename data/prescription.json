@@ -1,0 +1,163 @@
+[
+    {
+      "id": 1,
+      "diagnosis": "Viêm họng",
+      "prescription_date": "2024-12-25 08:30:00.000000",
+      "instruction": "Uống 3 lần mỗi ngày",
+      "doctor": { "id": 1, "full_name": "Lê Thị Lan" },
+      "patient": { "id": 2, "full_name": "Nguyễn Minh Tuấn" }
+    },
+    {
+      "id": 2,
+      "diagnosis": "Cảm cúm",
+      "prescription_date": "2024-12-20 09:00:00.000000",
+      "instruction": "Uống 2 lần mỗi ngày",
+      "doctor": { "id": 3, "full_name": "Trần Thị Mai" },
+      "patient": { "id": 4, "full_name": "Phan Văn Linh" }
+    },
+    {
+      "id": 3,
+      "diagnosis": "Dị ứng",
+      "prescription_date": "2024-12-22 10:15:00.000000",
+      "instruction": "Uống 1 lần sau ăn",
+      "doctor": { "id": 4, "full_name": "Nguyễn Thị Bích" },
+      "patient": { "id": 5, "full_name": "Trần Quang Hieu" }
+    },
+    {
+      "id": 4,
+      "diagnosis": "Viêm gan",
+      "prescription_date": "2024-12-18 11:30:00.000000",
+      "instruction": "Uống ngày 3 lần",
+      "doctor": { "id": 2, "full_name": "Nguyễn Minh Tuấn" },
+      "patient": { "id": 7, "full_name": "Lê Thị Mai" }
+    },
+    {
+      "id": 5,
+      "diagnosis": "Gout",
+      "prescription_date": "2024-12-19 14:00:00.000000",
+      "instruction": "Uống 1 lần sáng và tối",
+      "doctor": { "id": 5, "full_name": "Trần Minh Tuấn" },
+      "patient": { "id": 8, "full_name": "Nguyễn Hoàng Linh" }
+    },
+    {
+      "id": 6,
+      "diagnosis": "Viêm mũi",
+      "prescription_date": "2024-12-24 00:00:00.000000",
+      "instruction": "Uống 1 lần",
+      "doctor": { "id": 2, "full_name": "Nguyễn Văn A" },
+      "patient": { "id": 3, "full_name": "Phạm Văn Tánh" }
+    },
+    {
+      "id": 7,
+      "diagnosis": "Sốt",
+      "prescription_date": "2024-12-23 12:45:00.000000",
+      "instruction": "Uống 2 lần mỗi ngày",
+      "doctor": { "id": 1, "full_name": "Lê Thị Lan" },
+      "patient": { "id": 9, "full_name": "Lê Minh Tú" }
+    },
+    {
+      "id": 8,
+      "diagnosis": "Rối loạn tiêu hóa",
+      "prescription_date": "2024-12-17 13:00:00.000000",
+      "instruction": "Uống trước bữa ăn",
+      "doctor": { "id": 4, "full_name": "Nguyễn Thị Bích" },
+      "patient": { "id": 10, "full_name": "Trần Văn Hoàng" }
+    },
+    {
+      "id": 9,
+      "diagnosis": "Đau lưng",
+      "prescription_date": "2024-12-14 15:30:00.000000",
+      "instruction": "Dùng thuốc giảm đau 2 lần/ngày",
+      "doctor": { "id": 3, "full_name": "Trần Thị Mai" },
+      "patient": { "id": 11, "full_name": "Phan Thị Lan" }
+    },
+    {
+      "id": 10,
+      "diagnosis": "Cảm lạnh",
+      "prescription_date": "2024-12-21 16:00:00.000000",
+      "instruction": "Uống 3 lần mỗi ngày",
+      "doctor": { "id": 2, "full_name": "Nguyễn Minh Tuấn" },
+      "patient": { "id": 12, "full_name": "Nguyễn Quang Lâm" }
+    },
+    {
+      "id": 11,
+      "diagnosis": "Viêm phế quản",
+      "prescription_date": "2024-12-22 17:00:00.000000",
+      "instruction": "Uống 2 lần mỗi ngày",
+      "doctor": { "id": 1, "full_name": "Lê Thị Lan" },
+      "patient": { "id": 13, "full_name": "Lê Minh Tuấn" }
+    },
+    {
+      "id": 12,
+      "diagnosis": "Huyết áp cao",
+      "prescription_date": "2024-12-15 18:15:00.000000",
+      "instruction": "Uống mỗi ngày một lần",
+      "doctor": { "id": 4, "full_name": "Nguyễn Thị Bích" },
+      "patient": { "id": 14, "full_name": "Trần Quang Hieu" }
+    },
+    {
+      "id": 13,
+      "diagnosis": "Viêm da dị ứng",
+      "prescription_date": "2024-12-16 09:30:00.000000",
+      "instruction": "Bôi thuốc ngoài da 2 lần/ngày",
+      "doctor": { "id": 5, "full_name": "Trần Minh Tuấn" },
+      "patient": { "id": 15, "full_name": "Nguyễn Thi Thảo" }
+    },
+    {
+      "id": 14,
+      "diagnosis": "Chấn thương cột sống",
+      "prescription_date": "2024-12-20 10:45:00.000000",
+      "instruction": "Uống 2 lần mỗi ngày",
+      "doctor": { "id": 3, "full_name": "Trần Thị Mai" },
+      "patient": { "id": 16, "full_name": "Nguyễn Văn Thiên" }
+    },
+    {
+      "id": 15,
+      "diagnosis": "Ung thư phổi",
+      "prescription_date": "2024-12-23 11:15:00.000000",
+      "instruction": "Điều trị hóa trị liệu",
+      "doctor": { "id": 2, "full_name": "Nguyễn Minh Tuấn" },
+      "patient": { "id": 17, "full_name": "Trần Quang Khoa" }
+    },
+    {
+      "id": 16,
+      "diagnosis": "Viêm loét dạ dày",
+      "prescription_date": "2024-12-18 13:45:00.000000",
+      "instruction": "Uống thuốc sau bữa ăn",
+      "doctor": { "id": 1, "full_name": "Lê Thị Lan" },
+      "patient": { "id": 18, "full_name": "Lê Minh Tú" }
+    },
+    {
+      "id": 17,
+      "diagnosis": "Bệnh tiểu đường",
+      "prescription_date": "2024-12-19 14:30:00.000000",
+      "instruction": "Uống thuốc mỗi sáng",
+      "doctor": { "id": 4, "full_name": "Nguyễn Thị Bích" },
+      "patient": { "id": 19, "full_name": "Nguyễn Thi Kim" }
+    },
+    {
+      "id": 18,
+      "diagnosis": "Dị tật bẩm sinh",
+      "prescription_date": "2024-12-24 12:00:00.000000",
+      "instruction": "Thăm khám định kỳ",
+      "doctor": { "id": 5, "full_name": "Trần Minh Tuấn" },
+      "patient": { "id": 20, "full_name": "Trần Quang Lộc" }
+    },
+    {
+      "id": 19,
+      "diagnosis": "Hen suyễn",
+      "prescription_date": "2024-12-21 08:45:00.000000",
+      "instruction": "Uống thuốc hít 3 lần/ngày",
+      "doctor": { "id": 3, "full_name": "Trần Thị Mai" },
+      "patient": { "id": 21, "full_name": "Lê Minh Hoàng" }
+    },
+    {
+      "id": 20,
+      "diagnosis": "Tăng cholesterol",
+      "prescription_date": "2024-12-17 11:30:00.000000",
+      "instruction": "Uống thuốc 1 lần mỗi ngày",
+      "doctor": { "id": 2, "full_name": "Nguyễn Minh Tuấn" },
+      "patient": { "id": 22, "full_name": "Nguyễn Minh Hoàng" }
+    }
+  ]
+  

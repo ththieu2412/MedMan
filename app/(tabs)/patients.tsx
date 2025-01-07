@@ -35,6 +35,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f4f4f4',
     paddingHorizontal: 20,
     paddingTop: 20,
+    paddingBottom: 10,
   },
   search: {
     marginBottom: 20, // Khoảng cách giữa thanh tìm kiếm và phần tiêu đề
@@ -73,7 +74,6 @@ const styles = StyleSheet.create({
     marginTop: 20, // Khoảng cách giữa phần tiêu đề và danh sách bệnh nhân
   },
   addButton: {
-    width: '50%',
     marginTop: 30,
     backgroundColor: '#007BFF',  
     paddingVertical: 14,

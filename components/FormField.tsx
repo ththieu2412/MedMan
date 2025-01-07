@@ -2,7 +2,13 @@ import React, { useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-const FormField = ({ title, placeholder, value, onChangeText }) => {
+type  FormFieldProps = {
+  title: string;
+  placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+}
+const FormField: React.FC<FormFieldProps> = ({ title, placeholder, value, onChangeText }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 

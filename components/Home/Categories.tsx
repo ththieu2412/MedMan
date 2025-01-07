@@ -6,20 +6,22 @@ const Categories = () => {
     const router = useRouter();
 
     const categoriesList = [
-        { name: 'Doctor', id: 1, image: require('@/assets/images/categories/doctor.png') },
-        { name: 'Patient', id: 2, image: require('@/assets/images/categories/patient.png') },
-        { name: 'Medicine', id: 3, image: require('@/assets/images/categories/medicine.png') },
-        { name: 'Prescription', id: 4, image: require('@/assets/images/categories/Prescription.png') },
-        { name: 'Warehouse', id: 5, image: require('@/assets/images/categories/report.png') },
-        { name: 'Import', id: 6, image: require('@/assets/images/categories/import.png') },
-        { name: 'Export', id: 7, image: require('@/assets/images/categories/export.png') },
-        { name: 'Report', id: 8, image: require('@/assets/images/categories/report.png') },
+        { name: 'Staff', id: 1, image: require('@/assets/images/categories/doctor.png') },
+        { name: 'Doctor', id: 2, image: require('@/assets/images/categories/doctor.png') },
+        { name: 'Phamarcist', id: 3, image: require('@/assets/images/categories/doctor.png') },
+        { name: 'Patient', id: 4, image: require('@/assets/images/categories/patient.png') },
+        { name: 'Medicine', id: 5, image: require('@/assets/images/categories/medicine.png') },
+        { name: 'Prescription', id: 6, image: require('@/assets/images/categories/Prescription.png') },
+        { name: 'Warehouse', id: 7, image: require('@/assets/images/categories/report.png') },
+        { name: 'Import', id: 8, image: require('@/assets/images/categories/import.png') },
+        { name: 'Export', id: 9, image: require('@/assets/images/categories/export.png') },
+        { name: 'Report', id: 10, image: require('@/assets/images/categories/report.png') },
     ];
 
     const handleCategoryPress = (categoryName: string) => {
         console.log(`Selected category: ${categoryName}`);
         switch (categoryName) {
-            case 'Doctor':
+            case 'Employees':
                 router.push('/accounts/doctors/list');
                 break;
             case 'Patient':

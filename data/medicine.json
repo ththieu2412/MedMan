@@ -1,0 +1,182 @@
+[
+  {
+    "id": 1,
+    "name": "Panadol",
+    "type": "Viên",
+    "price": 12000,
+    "description": "Giảm đau nhanh",
+    "quantity": 2000,
+    "image": "https://i.imgur.com/zpTTJ6V.png"
+  },
+  {
+    "id": 2,
+    "name": "Extra",
+    "type": "Viên",
+    "price": 12000,
+    "description": "Giảm đau mạnh",
+    "quantity": 1200,
+    "image": "https://i.imgur.com/HT6dT2m.png"
+  },
+  {
+    "id": 3,
+    "name": "Paracetamol",
+    "type": "Viên",
+    "price": 23000,
+    "description": "Hạ sốt nhanh",
+    "quantity": 22300,
+    "image": "https://i.imgur.com/XZ3zuxu.png"
+  },
+  {
+    "id": 4,
+    "name": "Aspirin",
+    "type": "Viên",
+    "price": 15000,
+    "description": "Chống viêm",
+    "quantity": 5000,
+    "image": null
+  },
+  {
+    "id": 5,
+    "name": "Ibuprofen",
+    "type": "Viên",
+    "price": 18000,
+    "description": "Giảm đau kháng viêm",
+    "quantity": 6000,
+    "image": null
+  },
+  {
+    "id": 6,
+    "name": "Tylenol",
+    "type": "Viên",
+    "price": 25000,
+    "description": "Giảm đau hạ sốt",
+    "quantity": 8000,
+    "image": "https://i.imgur.com/zpTTJ6V.png"
+  },
+  {
+    "id": 7,
+    "name": "Amoxicillin",
+    "type": "Viên",
+    "price": 30000,
+    "description": "Kháng sinh",
+    "quantity": 4000,
+    "image": "https://i.imgur.com/HT6dT2m.png"
+  },
+  {
+    "id": 8,
+    "name": "Cefuroxime",
+    "type": "Viên",
+    "price": 32000,
+    "description": "Kháng sinh phổ rộng",
+    "quantity": 2000,
+    "image": null
+  },
+  {
+    "id": 9,
+    "name": "Clarithromycin",
+    "type": "Viên",
+    "price": 28000,
+    "description": "Kháng sinh nhóm macrolid",
+    "quantity": 3000,
+    "image": "https://i.imgur.com/XZ3zuxu.png"
+  },
+  {
+    "id": 10,
+    "name": "Ciprofloxacin",
+    "type": "Viên",
+    "price": 27000,
+    "description": "Điều trị nhiễm trùng",
+    "quantity": 3500,
+    "image": null
+  },
+  {
+    "id": 11,
+    "name": "Metronidazole",
+    "type": "Viên",
+    "price": 24000,
+    "description": "Chống ký sinh trùng",
+    "quantity": 1500,
+    "image": "https://i.imgur.com/zpTTJ6V.png"
+  },
+  {
+    "id": 12,
+    "name": "Clindamycin",
+    "type": "Viên",
+    "price": 26000,
+    "description": "Điều trị viêm da",
+    "quantity": 2800,
+    "image": null
+  },
+  {
+    "id": 13,
+    "name": "Azithromycin",
+    "type": "Viên",
+    "price": 29000,
+    "description": "Kháng sinh nhóm macrolid",
+    "quantity": 4000,
+    "image": "https://i.imgur.com/HT6dT2m.png"
+  },
+  {
+    "id": 14,
+    "name": "Doxycycline",
+    "type": "Viên",
+    "price": 20000,
+    "description": "Điều trị nhiễm trùng",
+    "quantity": 3100,
+    "image": null
+  },
+  {
+    "id": 15,
+    "name": "Zithromax",
+    "type": "Viên",
+    "price": 35000,
+    "description": "Kháng sinh phổ rộng",
+    "quantity": 1800,
+    "image": "https://i.imgur.com/XZ3zuxu.png"
+  },
+  {
+    "id": 16,
+    "name": "Augmentin",
+    "type": "Viên",
+    "price": 32000,
+    "description": "Kháng sinh kết hợp",
+    "quantity": 1900,
+    "image": null
+  },
+  {
+    "id": 17,
+    "name": "Bactrim",
+    "type": "Viên",
+    "price": 22000,
+    "description": "Điều trị nhiễm trùng",
+    "quantity": 4500,
+    "image": "https://i.imgur.com/HT6dT2m.png"
+  },
+  {
+    "id": 18,
+    "name": "Nitrofurantoin",
+    "type": "Viên",
+    "price": 23000,
+    "description": "Điều trị nhiễm trùng đường tiểu",
+    "quantity": 5000,
+    "image": null
+  },
+  {
+    "id": 19,
+    "name": "Fluconazole",
+    "type": "Viên",
+    "price": 26000,
+    "description": "Điều trị nấm",
+    "quantity": 2000,
+    "image": "https://i.imgur.com/zpTTJ6V.png"
+  },
+  {
+    "id": 20,
+    "name": "Ketoconazole",
+    "type": "Viên",
+    "price": 24000,
+    "description": "Điều trị nấm da",
+    "quantity": 2500,
+    "image": null
+  }
+]
