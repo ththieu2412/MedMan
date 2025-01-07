@@ -2,7 +2,11 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import React, { useState } from 'react';
 import { FontAwesome } from '@expo/vector-icons';
 
-const SearchText = ({placeholder, setSearchText}) => {
+type SearchTextProps = {
+  placeholder: string;
+  setSearchText: (text: string) => void;
+}
+const SearchText: React.FC<SearchTextProps> = ({placeholder, setSearchText}) => {
   const [isFocused, setIsFocused] = useState(false);
   const [searchInput, setSearchInput] = useState('');
 

@@ -1,7 +1,12 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
 
-const MyButton = ({ title, onPress}) => {
+type MyButtonProps = {
+  title: string;
+  onPress: () => void;
+}
+
+const MyButton: React.FC<MyButtonProps> = ({ title, onPress}) => {
   return (
     <View>
       <TouchableOpacity 
