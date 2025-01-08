@@ -1,21 +1,19 @@
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
 
-// types.ts
-// export interface ApiError {
-//   message: string; // Thông báo lỗi
-//   status: number | null; // Mã trạng thái HTTP, null nếu không có
-// }
-
-// export interface ApiResponse<T> {
-//   data: T | null; // Dữ liệu trả về từ API
-//   error: ApiError | null; // Thông tin về lỗi, null nếu không có lỗi
-// }
-
 export interface ApiResponse<T> {
   statuscode: number;
-  data: T;
+  data: T |null;
   status: string;
-  errorMessage?: string;
+  errorMessage?: string | null;
+}
+
+export interface Medicine {
+  id: number;
+  medicine_name: string;
+  unit: string;
+  sale_price: number;
+  description?: string | null;
+  stock_quantity: number;
 }
 
 
@@ -31,15 +29,6 @@ export interface Patient {
   id_card:string;
   employee:number;
 }
-export interface Prescription {
-  id: string;
-  patient_id: string;
-  medication_name: string;
-  dosage: string;
-  instructions: string;
-  patient?: Patient; // Thêm thông tin bệnh nhân nếu cần (tuỳ chọn)
-}
-
 
 
 // Warehouse interface
@@ -68,6 +57,23 @@ export interface ImportReceiptDetail {
   price: Float;
 }
 
+// ExportReceipt interface
+export interface Prescription {
+  id: string;
+  patient_id: string;
+  medication_name: string;
+  dosage: string;
+  instructions: string;
+  patient?: Patient; // Thêm thông tin bệnh nhân nếu cần (tuỳ chọn)
+}
+interface PrescriptionDetail {
+  id: number; 
+  quantity: number;
+  usage_instruction: string | null; 
+  medicine_id: number; 
+  prescription_id: number; 
+}
+
 // Employee interface
 export interface Employee {
   id: number;
@@ -81,3 +87,36 @@ export interface Employee {
   image:string;
   is_active:boolean;
 }
+
+export interface ExportReceipt {
+  id: number; 
+  total_amount: number; 
+  export_date: string; 
+  employee_id: number; 
+  prescription_id: number;
+  warehouse_id: number; 
+  is_approved: boolean; 
+}
+
+interface ExportReceiptDetail {
+  id: number;
+  quantity: number; 
+  price: number; 
+  insurance_covered: boolean;
+  ins_amount: number; 
+  patient_pay: number; 
+  export_receipt_id: number;
+  medicine_id: number; 
+}
+
+
+interface Account {
+  id: number; 
+  password: string; 
+  username: string; 
+  is_active: boolean; 
+  role: string; 
+  employee_id: number | null; 
+}
+
+

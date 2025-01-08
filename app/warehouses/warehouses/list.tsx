@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import {
-  getWarehousesapi,
+  getWarehouseListsapi,
   addWarehouseapi,
   updateWarehouseapi,
   deleteWarehouseapi,
@@ -34,7 +34,7 @@ const ListWarehouse: React.FC = () => {
   const fetchWarehouses = async () => {
     setLoading(true);
     try {
-      const response: ApiResponse<Warehouse[]> = await getWarehousesapi();
+      const response: ApiResponse<Warehouse[]> = await getWarehouseListsapi();
       if (response.statuscode === 200 && response.status === "success") {
         setWarehouses(response.data);
       } else {
@@ -51,19 +51,26 @@ const ListWarehouse: React.FC = () => {
   };
 
 
-
-  const handleAddWarehouse = async (newWarehouse: Warehouse) => {
-    try {
-      const response: ApiResponse<null> = await addWarehouseapi(newWarehouse);
-      if (response.statuscode === 200 && response.status === "success") {
-        setWarehouses([...warehouses, newWarehouse]);
-      } else {
-        throw new Error(response.errorMessage || "Không thể thêm kho mới");
-      }
-    } catch (error: any) {
-      Alert.alert("Lỗi", error.message);
+const handleAddWarehouse = async (newWarehouse: Warehouse) => {
+  try {
+    const response: ApiResponse<null> = await addWarehouseapi(newWarehouse);
+    if (response.statuscode === 200 && response.status === "success") {
+      // Thêm kho mới vào danh sách mà không cần gọi lại API
+      setWarehouses((prev) => [...prev, { ...newWarehouse }]); // Đảm bảo thêm kho mới vào mảng hiện tại
+      setShowAddModal(false); // Đóng modal sau khi thêm kho
+      Alert.alert("Thành công", "Kho mới đã được thêm.");
+    } else {
+      throw new Error(response.errorMessage || "Không thể thêm kho mới");
     }
-  };
+  } catch (error: any) {
+    Alert.alert("Lỗi", error.message);
+  }
+};
+
+
+
+
+
 
 
   const handleUpdateWarehouse = async (updatedWarehouse: Warehouse) => {
@@ -86,24 +93,43 @@ const ListWarehouse: React.FC = () => {
     }
   };
 
+const handleDeleteWarehouse = async () => {
+  if (!selectedWarehouse) return;
 
-  const handleDeleteWarehouse = async () => {
-    if (!selectedWarehouse) return;
-    try {
-      const response: ApiResponse<null> = await deleteWarehouseapi(
-        selectedWarehouse.id.toString()
-      );
-      if (response.statuscode === 200 && response.status === "success") {
-        setWarehouses((prev) =>
-          prev.filter((warehouse) => warehouse.id !== selectedWarehouse.id)
-        );
-      } else {
-        throw new Error(response.errorMessage || "Không thể xóa kho");
-      }
-    } catch (error: any) {
-      Alert.alert("Lỗi", error.message);
-    }
-  };
+  Alert.alert(
+    "Xác nhận xóa",
+    `Bạn có chắc chắn muốn xóa kho "${selectedWarehouse.warehouse_name}"?`,
+    [
+      {
+        text: "Hủy",
+        style: "cancel",
+      },
+      {
+        text: "Xóa",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const response: ApiResponse<null> = await deleteWarehouseapi(
+              selectedWarehouse.id.toString()
+            );
+            if (response.statuscode === 200 && response.status === "success") {
+              setWarehouses((prev) =>
+                prev.filter((warehouse) => warehouse.id !== selectedWarehouse.id)
+              );
+              setShowDetailModal(false); // Đóng modal chi tiết sau khi xóa
+              Alert.alert("Thành công", "Đã xóa kho thành công.");
+            } else {
+              throw new Error(response.errorMessage || "Không thể xóa kho.");
+            }
+          } catch (error: any) {
+            Alert.alert("Lỗi", error.message);
+          }
+        },
+      },
+    ]
+  );
+};
+
 
 
   return (
@@ -113,20 +139,21 @@ const ListWarehouse: React.FC = () => {
         <ActivityIndicator size="large" color="#007bff" />
       ) : (
         <FlatList
-          data={warehouses}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => {
-                setSelectedWarehouse(item);
-                setShowDetailModal(true);
-              }}
-              style={styles.listItem}
-            >
-              <Text style={styles.itemText}>{item.warehouse_name}</Text>
-            </TouchableOpacity>
-          )}
-        />
+  data={warehouses}
+  keyExtractor={(item) => item.id.toString()}
+  renderItem={({ item }) => (
+    <TouchableOpacity
+      onPress={() => {
+        setSelectedWarehouse(item);
+        setShowDetailModal(true);
+      }}
+      style={styles.listItem}
+    >
+      <Text style={styles.itemText}>{item.warehouse_name}</Text>
+    </TouchableOpacity>
+  )}
+/>
+
       )}
       <TouchableOpacity
         style={styles.addButton}
