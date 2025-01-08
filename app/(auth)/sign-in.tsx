@@ -7,8 +7,8 @@ import FormField from '@/components/FormField';
 const SignIn = () => {
   const router = useRouter();
 
-  const [userName, setUserName] = useState('');
-  const [password, setPassword] = useState('');
+  const [userName, setUserName] = useState('admin');
+  const [password, setPassword] = useState('12345');
 
   const validateLogin = () => {
     if (userName === '' || password === '') {

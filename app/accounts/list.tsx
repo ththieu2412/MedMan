@@ -3,15 +3,19 @@ import React, { useEffect, useState } from 'react';
 import { Employee } from '@/types';
 import MyButton from '@/components/MyButton';
 import SearchText from '@/components/SearchText';
-import { Link } from 'expo-router';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { formatDate } from '@/utils/formatDate';
 
+
 const data: Employee[] = require('@/data/employees.json');
 
-const ListDoctor = () => {
+const ListEmployees = () => {
+  const { role } = useLocalSearchParams();
+
   const [fadeAnim] = useState(new Animated.Value(0)); // Khởi tạo hiệu ứng mờ
-  const [selectedRole, setSelectedRole] = useState('Doctor'); // Trạng thái vai trò được chọn
+  console.log(role);
+  const [selectedRole, setSelectedRole] = useState(role); // Trạng thái vai trò được chọn
   const [filteredData, setFilteredData] = useState<Employee[]>(data); // Dữ liệu đã lọc
   const [modalVisible, setModalVisible] = useState(false); // Modal lọc
 
@@ -103,7 +107,7 @@ const ListDoctor = () => {
   );
 };
 
-export default ListDoctor;
+export default ListEmployees;
 
 // Styles
 const styles = StyleSheet.create({

@@ -1,34 +1,34 @@
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View, ViewStyle } from 'react-native';
 import React, { useState } from 'react';
 import { FontAwesome } from '@expo/vector-icons';
 
 type SearchTextProps = {
   placeholder: string;
   setSearchText: (text: string) => void;
-}
-const SearchText: React.FC<SearchTextProps> = ({placeholder, setSearchText}) => {
+  style?: ViewStyle; // Thêm prop style tùy chọn
+};
+
+const SearchText: React.FC<SearchTextProps> = ({ placeholder, setSearchText, style }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [searchInput, setSearchInput] = useState('');
 
   return (
-    <View style={styles.container}>
-      <View
-        style={[styles.inputWrapper, isFocused && styles.focusedInput]} 
-      >
+    <View style={StyleSheet.flatten([styles.container, style])}>
+      <View style={[styles.inputWrapper, isFocused && styles.focusedInput]}>
         <FontAwesome
           name="search"
           size={20}
           color="#666666"
-          style={styles.icon} 
+          style={styles.icon}
         />
         <TextInput
           placeholder={placeholder}
           style={styles.input}
-          onFocus={() => setIsFocused(true)} 
-          onBlur={() => setIsFocused(false)}  
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           onChangeText={(value) => setSearchInput(value)}
           onSubmitEditing={() => setSearchText(searchInput)}
-          value={searchInput} // Thêm value để giữ trạng thái nhập liệu
+          value={searchInput}
         />
       </View>
     </View>
@@ -39,7 +39,7 @@ export default SearchText;
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 10, // Khoảng cách giữa các phần tử khác
+    marginVertical: 10,
   },
   inputWrapper: {
     position: 'relative',
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start', // Đảm bảo các phần tử căn chỉnh đúng
+    justifyContent: 'flex-start',
   },
   icon: {
     position: 'absolute',
@@ -61,10 +61,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#333333',
-    paddingLeft: 40, // Đảm bảo có khoảng cách cho icon bên trái
+    paddingLeft: 40,
   },
   focusedInput: {
-    borderColor: '#66CCFF', 
-    borderWidth: 2, 
+    borderColor: '#66CCFF',
+    borderWidth: 2,
   },
 });
