@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { SafeAreaView } from 'react-native';
+import { AuthProvider } from '@/context/AuthContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -29,16 +30,18 @@ export default function RootLayout() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1}}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false}} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false}} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      {/* <StatusBar style="auto" /> */}
-    </ThemeProvider>
-    </SafeAreaView>
+    <AuthProvider>
+        <SafeAreaView style={{ flex: 1}}>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack>
+              <Stack.Screen name="index" options={{ headerShown: false}} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false}} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            {/* <StatusBar style="auto" /> */}
+          </ThemeProvider>
+      </SafeAreaView>
+    </AuthProvider>
   );
 }

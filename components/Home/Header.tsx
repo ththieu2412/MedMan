@@ -3,14 +3,10 @@ import React, { useEffect, useState } from 'react';
 
 // Giả sử bạn đang lấy dữ liệu từ API và có đường dẫn ảnh (URL)
 import userData from '@/data/user.json';
+import { useAuth } from '@/context/AuthContext';
 
 const Header = () => {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    // Giả sử bạn đang load dữ liệu từ file JSON và set vào state
-    setUser(userData);
-  }, []);
+  const user = useAuth();
 
   if (!user) {
     return <Text>Loading...</Text>; // Khi chưa có dữ liệu
@@ -20,7 +16,7 @@ const Header = () => {
   const defaultImage = require('@/assets/images/avatar/default.png');
 
   // Nếu ảnh là URL từ API, chỉ cần sử dụng URL đó trong source
-  const userImage = user.image ? { uri: user.image } : defaultImage;
+  const userImage = user.user?.image ? { uri: user.user.image } : defaultImage;
 
   return (
     <View>
@@ -31,7 +27,7 @@ const Header = () => {
         />
         <View>
           <Text>Hello,👋</Text>
-          <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{user.username}</Text>
+          <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{user.user?.username}</Text>
         </View>
       </View>
     </View>
