@@ -8,7 +8,7 @@ const Categories = () => {
     const categoriesList = [
         { name: 'Staff', id: 1, image: require('@/assets/images/categories/doctor.png') },
         { name: 'Doctor', id: 2, image: require('@/assets/images/categories/doctor.png') },
-        { name: 'Phamarcist', id: 3, image: require('@/assets/images/categories/doctor.png') },
+        { name: 'Pharmacist', id: 3, image: require('@/assets/images/categories/doctor.png') },
         { name: 'Patient', id: 4, image: require('@/assets/images/categories/patient.png') },
         { name: 'Medicine', id: 5, image: require('@/assets/images/categories/medicine.png') },
         { name: 'Prescription', id: 6, image: require('@/assets/images/categories/Prescription.png') },
@@ -21,20 +21,22 @@ const Categories = () => {
     const handleCategoryPress = (categoryName: string) => {
         console.log(`Selected category: ${categoryName}`);
         switch (categoryName) {
-            case 'Employees':
-                router.push('/accounts/doctors/list');
+            case 'Doctor':
+                router.push('/accounts/list?role=Doctor');
+                break;
+            case 'Pharmacist':
+                router.push('/accounts/list?role=Pharmacist');
+                break;
+            case 'Staff':
+                router.push('/accounts/list?role=Staff');
                 break;
             case 'Patient':
-                router.push('/(tabs)/patients');
-                break;
-            case 'Medicine':
-                router.push('/warehouses/medicines/list');
-            case 'Warehouse':
-                router.push('/warehouses/warehouses/list');
+                router.push('')
             default:
                 break;
         }
     };
+    
 
     return (
         <View style={styles.container}>

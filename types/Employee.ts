@@ -1,4 +1,5 @@
 import { Gender } from "@/utils/genderTypes";
+import { Role } from "@/utils/Role";
 
 export interface Employee {
     id: number;
@@ -11,4 +12,5 @@ export interface Employee {
     email: string;
     image: string;
     is_active: 0 | 1;
+    role: Role;
 }
