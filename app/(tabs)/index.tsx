@@ -7,8 +7,11 @@ import Header from '@/components/Home/Header';
 import Slider from '@/components/Home/Slider';
 import Categories from '@/components/Home/Categories';
 import SearchText from '@/components/SearchText';
+import { useAuth } from '@/context/AuthContext';
 
 export default function HomeScreen() {
+  const user = useAuth();
+  console.log(user.user);
   return (
     <View>
       <Header />
