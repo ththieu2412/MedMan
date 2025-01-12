@@ -1,36 +1,55 @@
 import React, { useState } from 'react';
-import { StyleSheet, KeyboardAvoidingView, ScrollView, Platform, Text, View, Image, TouchableOpacity,  Alert } from 'react-native';
+import { StyleSheet, KeyboardAvoidingView, ScrollView, Platform, Text, View, Image, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import MyButton from '@/components/MyButton';
 import FormField from '@/components/FormField';
+import { useAuth } from '@/context/AuthContext';
+import { login } from '@/services/api';
 
 const SignIn = () => {
   const router = useRouter();
+  const { setUser } = useAuth();
+  const [userName, setUserName] = useState('mie');
+  const [password, setPassword] = useState('1593572684');
+  const [error, setError] = useState<string>('');
 
-  const [userName, setUserName] = useState('admin');
-  const [password, setPassword] = useState('12345');
-
-  const validateLogin = () => {
+  const validateLogin = async () => {
     if (userName === '' || password === '') {
-      Alert.alert('Error', 'Please enter both username and password');
-    } else if (userName === 'admin' && password === '12345') {
-      router.navigate('/(tabs)');
+      setError('Please enter both username and password');
     } else {
-      Alert.alert('Error', 'Invalid username or password');
+      try {
+        const response = await login(userName, password);
+        if (response && response.token) {
+          setUser({
+            token: response.token,
+            username: response.username,
+            role: response.role,
+            employee_id: response.employee_id,
+            image: response.image || null,
+          });
+          router.replace('/(tabs)');
+        } else {
+          setError('Invalid username or password');
+        }
+      } catch (error: any) {
+        // Lỗi xảy ra từ login
+        console.error('Login error:', error.message);
+        setError(error.message || 'An error occurred during login');
+      }
     }
   };
-
+  
   const onForgotPassword = () => {
-    router.push('/forget-pass'); 
+    router.push('/forget-pass');
   };
-      
+
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#0055A8', }}
+      style={{ flex: 1, backgroundColor: '#0055A8' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} 
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.container}>
@@ -52,12 +71,13 @@ const SignIn = () => {
               value={password}
               onChangeText={setPassword}
             />
+            {error && <Text style={styles.errorText}>{error}</Text>}
             <TouchableOpacity onPress={onForgotPassword}>
               <Text style={styles.forgetPass}>Forget Password?</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={{ width: '80%' }}>
+          <View style={styles.buttonContainer}>
             <MyButton title={'Login'} onPress={validateLogin} />
           </View>
         </View>
@@ -70,16 +90,18 @@ export default SignIn;
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 10,
-    justifyContent: 'space-around',
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
   image: {
-    width: 500,
-    height: 500,
+    width: '80%',
+    height: 250,
+    marginBottom: 30,
   },
   form: {
-    width: '90%',
+    width: '100%',
     padding: 20,
     gap: 20,
   },
@@ -90,6 +112,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: -10,
   },
+  errorText: {
+    color: '#FF6347', // Thay đổi màu lỗi thành màu đỏ nhẹ nhàng (tomato)
+    textAlign: 'center',
+    marginBottom: 20,
+    fontSize: 14,
+  },
+  buttonContainer: {
+    width: '80%',
+    marginTop: 20,
+  },
 });
-
-

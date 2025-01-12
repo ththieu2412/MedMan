@@ -127,7 +127,6 @@ export const updateWarehouseapi = async (
 };
 
 
-
 export const deleteWarehouseapi = async (
   id: string
 ): Promise<ApiResponse<null>> => {

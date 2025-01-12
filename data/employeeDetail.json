@@ -1,0 +1,14 @@
+{
+    "id": 3,
+    "full_name": "Lê Minh C",
+    "date_of_birth": "1988-05-15",
+    "gender": "Nam",
+    "id_card": "345678901234",
+    "phone_number": "567-890-1234",
+    "address": "789 Pham Ngoc Thach St, Hanoi, Vietnam",
+    "email": "leminhc@example.com",
+    "image": null,
+    "role": "Pharmacist",
+    "password": "password789",
+    "isActive": true
+}
