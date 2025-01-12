@@ -1,7 +1,7 @@
-import { Warehouse, ApiResponse, ImportReceipt,ImportReceiptDetail,Medicine ,Patient} from "@/constants/types"; 
+import { Warehouse, ApiResponse, ImportReceipt,ImportReceiptDetail,Medicine ,Patient, SearchIRFilters,SearchWarehouseFilters} from "@/constants/types"; 
+import axios from 'axios';
 
-
-const BASE_URL = 'http://10.251.1.58:8000/api'; 
+const BASE_URL = 'http://192.168.1.44:8000/api'; 
 
 export const getWarehouseListsapi = async (): Promise<ApiResponse<Warehouse[]>> => {
   console.log('getWarehousesapi')
@@ -48,6 +48,24 @@ export const getWarehouseDetailapi = async (
       data: null,
       errorMessage: error.message || "Internal server error",
     };
+  }
+};
+
+
+// Hàm tìm kiếm kho
+export const searchWarehouses = async (filters: SearchWarehouseFilters): Promise<ApiResponse<Warehouse[]>> => {
+  try {
+    // Chuyển đổi các tham số tìm kiếm thành query string
+    const params = new URLSearchParams(filters as any).toString();
+
+    // Gọi API
+    const response = await axios.get(`${BASE_URL}/warehouses/warehouses/search/?${params}`);
+
+    // Trả về dữ liệu
+    return response.data;
+  } catch (error) {
+    console.error("Error searching warehouses:", error);
+    throw error;
   }
 };
 
@@ -132,6 +150,34 @@ export const deleteWarehouseapi = async (
 };
 
 
+
+// hàm tìm kiếm phiếu nhập
+
+export const searchImportReceipts = async (
+  filters: SearchIRFilters
+): Promise<ApiResponse<ImportReceipt[]>> => {
+  try {
+    // Chuẩn bị query params
+    const params = new URLSearchParams(filters as Record<string, string>).toString();
+
+    // Gửi request đến API
+    const response = await axios.get<ApiResponse<ImportReceipt[]>>(
+      `${BASE_URL}/warehouse/import-receipts/search/?${params}`
+    );
+
+    // Trả về dữ liệu
+    return response.data;
+  } catch (error: any) {
+    console.error('Error searching import receipts:', error);
+
+    // Ném lỗi có định dạng
+    throw {
+      statusCode: error.response?.status || 500,
+      status: 'error',
+      errorMessage: error.message || 'An unknown error occurred.',
+    };
+  }
+};
 // ImportReceipt fetch API
 
 export const getImportReceiptListsapi = async (): Promise<ApiResponse<ImportReceipt[]>> => {
@@ -263,12 +309,15 @@ export const deleteImportReceiptapi = async (
 
 // ImportReceiptDetail fetch API
 
-export const getImportReceiptDetailListsapi = async (): Promise<ApiResponse<ImportReceiptDetail[]>> => {
+export const getImportReceiptDetailsByIdsapi = async (id: number): Promise<ApiResponse<ImportReceiptDetail[]>> => {
   try {
-    const response = await fetch(BASE_URL+"/warehouses/import-receipt-detail-list/");
+    const response = await fetch(`${BASE_URL}/warehouses/import-receipt-details-by-id/${id}/`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     const data = await response.json();
-    console.log(data)
-    return data
+    console.log(data);
+    return data;
   } catch (error: any) {
     return {
       statuscode: 500,
@@ -279,33 +328,34 @@ export const getImportReceiptDetailListsapi = async (): Promise<ApiResponse<Impo
   }
 };
 
-export const getImportReceiptDetailapi = async (
-  id: string
-): Promise<ApiResponse<ImportReceiptDetail>> => {
-  try {
 
-    // Gọi API lấy thông tin chi tiết của kho
-    const response = await fetch(`${BASE_URL}/warehouses/import-receipt-detail-list/${id}/`);
-    const data = await response.json();
+// export const getImportReceiptDetailapi = async (
+//   id: string
+// ): Promise<ApiResponse<ImportReceiptDetail>> => {
+//   try {
 
-    // Trả về dữ liệu nếu thành công
-    console.log(data);
-    return {
-      statuscode: 200,
-      status: "success",
-      data: data,
-      errorMessage: null,
-    };
-  } catch (error: any) {
-    // Xử lý lỗi và trả về response lỗi
-    return {
-      statuscode: 500,
-      status: "error",
-      data: null,
-      errorMessage: error.message || "Internal server error",
-    };
-  }
-};
+//     // Gọi API lấy thông tin chi tiết của kho
+//     const response = await fetch(`${BASE_URL}/warehouses/import-receipt-detail-list/${id}/`);
+//     const data = await response.json();
+
+//     // Trả về dữ liệu nếu thành công
+//     console.log(data);
+//     return {
+//       statuscode: 200,
+//       status: "success",
+//       data: data,
+//       errorMessage: null,
+//     };
+//   } catch (error: any) {
+//     // Xử lý lỗi và trả về response lỗi
+//     return {
+//       statuscode: 500,
+//       status: "error",
+//       data: null,
+//       errorMessage: error.message || "Internal server error",
+//     };
+//   }
+// };
 
 export const addImportReceiptDetailapi = async (
   newImportReceiptDetail: ImportReceiptDetail
@@ -338,23 +388,55 @@ export const addImportReceiptDetailapi = async (
 
 
 
+// export const updateImportReceiptDetailapi = async (
+//   id: string,
+//   updatedImportReceiptDetail: ImportReceiptDetail
+// ): Promise<ApiResponse<null>> => {
+//   try {
+//     const response = await fetch(BASE_URL+`/warehouses/import-receipt-details/${id}/`, {
+//       method: "PUT",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify(updatedImportReceiptDetail),
+//     });
+
+//     const data = await response.json();
+
+//     return data
+//   } catch (error: any) {
+//     return {
+//       statuscode: 500,
+//       status: "error",
+//       data: null,
+//       errorMessage: error.message || "Internal server error",
+//     };
+//   }
+// };
 export const updateImportReceiptDetailapi = async (
-  id: string,
-  updatedImportReceiptDetail: ImportReceiptDetail
-): Promise<ApiResponse<null>> => {
+  id: number,  // receiptId
+  body: { details: ImportReceiptDetail[] },  // The request body containing ImportReceiptDetail array
+  authToken: string | null = null
+): Promise<ApiResponse<ImportReceiptDetail[]>> => {  // The function will return ApiResponse with ImportReceiptDetail array
   try {
-    const response = await fetch(BASE_URL+`/warehouses/import-receipt-details/${id}/`, {
-      method: "PUT",
+
+    const response = await fetch(`${BASE_URL}/warehouses/import-receipt-details-by-id/${id}/`, {
+      method: 'PUT',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
+        ...(authToken && { 'Authorization': `Bearer ${authToken}` }),  // Include auth token if needed
       },
-      body: JSON.stringify(updatedImportReceiptDetail),
+      body: JSON.stringify(body),
     });
 
-    const data = await response.json();
+    const responseData: ApiResponse<ImportReceiptDetail[]> = await response.json();  // Response data will be of ApiResponse type
 
-    return data
-  } catch (error: any) {
+    // if (!response.ok) {
+    //   throw new Error(responseData.errorMessage || 'Something went wrong');
+    // }
+
+    return responseData;  // Return the response in ApiResponse format
+  } catch (error:any) {
     return {
       statuscode: 500,
       status: "error",
@@ -363,7 +445,6 @@ export const updateImportReceiptDetailapi = async (
     };
   }
 };
-
 
 
 export const deleteImportReceiptDetailapi = async (
