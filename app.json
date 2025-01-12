@@ -32,6 +32,13 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photoLibraryUsageDescription": "Select and upload images.",
+          "cameraPermission": "Allow the app to access your camera."
+        }
       ]
     ],
     "experiments": {

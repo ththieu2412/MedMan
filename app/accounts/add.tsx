@@ -1,28 +1,19 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
-import Header from "@/components/Profile/Header";
-import { fontSize, spacing } from "@/constants/dimensions";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import CustomInput from "@/components/CustomInput";
-import Fontisto from "@expo/vector-icons/Fontisto";
-import AntDesign from "@expo/vector-icons/build/AntDesign";
-import Feather from "@expo/vector-icons/build/Feather";
-import FontAwesome6 from "@expo/vector-icons/build/FontAwesome6";
-import MyButton from "@/components/MyButton";
-import { useRouter } from "expo-router";
-import { Picker } from "@react-native-picker/picker";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { format } from "date-fns";
-import * as ImagePicker from "expo-image-picker";
-import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIcons";
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
+import Header from '@/components/Profile/Header';
+import { fontSize, spacing } from '@/constants/dimensions';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import CustomInput from '@/components/CustomInput';
+import Fontisto from '@expo/vector-icons/Fontisto';
+import AntDesign from '@expo/vector-icons/build/AntDesign';
+import Feather from '@expo/vector-icons/build/Feather';
+import FontAwesome6 from '@expo/vector-icons/build/FontAwesome6';
+import MyButton from '@/components/MyButton';
+import { useRouter } from 'expo-router';
+import { Picker } from '@react-native-picker/picker';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { format } from 'date-fns'; 
+import * as ImagePicker from 'expo-image-picker'
 
 export default function SettingScreen() {
   const [image, setImage] = useState(null);
@@ -39,20 +30,31 @@ export default function SettingScreen() {
 
   // Hàm xử lý khi nhấn nút sửa thông tin
   const handleEdit = () => {
-    Alert.alert("Xác nhận", "Bạn có muốn tạo nhân viên mới?", [
-      {
-        text: "Đồng ý",
-        onPress: () => {
-          console.log("Nhân viên đã được tạo!");
-          console.log(role);
-          router.push(`/(tabs)/patients`);
+    console.log("Đang sửa");
+
+    Alert.alert(
+      "Xác nhận",
+      "Bạn có muốn tạo nhân viên mới?",
+      [
+        {
+          text: "Đồng ý",
+          onPress: () => {
+            console.log("Nhân viên đã được tạo!");
+            console.log(role);
+            if(role === 'Admin'){
+              router.replace('./list?role=Staff');
+            } else {
+              router.push(`./list?role=${role}`);
+            }
+            
+          },
         },
-      },
-      {
-        text: "Hủy",
-        style: "cancel",
-      },
-    ]);
+        {
+          text: "Hủy",
+          style: "cancel",
+        },
+      ]
+    );
   };
 
   // Hiển thị modal chọn ngày tháng
@@ -65,18 +67,14 @@ export default function SettingScreen() {
   };
 
   const handleDateConfirm = (date) => {
-    setDateOfBirth(format(date, "dd/MM/yyyy")); // Định dạng ngày tháng
+    setDateOfBirth(format(date, 'dd/MM/yyyy')); // Định dạng ngày tháng
     hideDatePicker();
   };
 
   const handleChoosePhoto = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
-      Alert.alert(
-        "Permission required",
-        "You need to grant media library permissions to select a photo."
-      );
+      Alert.alert('Permission required', 'You need to grant media library permissions to select a photo.');
       return;
     }
 
@@ -95,10 +93,7 @@ export default function SettingScreen() {
   const handleTakePhoto = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (permissionResult.granted === false) {
-      Alert.alert(
-        "Permission required",
-        "You need to grant camera permissions to take a photo."
-      );
+      Alert.alert('Permission required', 'You need to grant camera permissions to take a photo.');
       return;
     }
 
@@ -134,19 +129,10 @@ export default function SettingScreen() {
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: 2 * spacing.xl }}
-    >
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 2 * spacing.xl }}>
       <View style={styles.profileImageContainer}>
-        <Image
-          source={image ? image : require("@/assets/images/avatar/default.png")}
-          style={styles.profileImage}
-        />
-        <TouchableOpacity
-          style={styles.editContainer}
-          onPress={handleEditImage}
-        >
+        <Image source={image ? image : require('@/assets/images/avatar/default.png')} style={styles.profileImage} />
+        <TouchableOpacity style={styles.editContainer} onPress={handleEditImage}>
           <FontAwesome name="pencil-square-o" size={20} color="white" />
         </TouchableOpacity>
       </View>
@@ -156,9 +142,23 @@ export default function SettingScreen() {
           label="Họ và tên"
           placeholder="Nguyễn Văn A"
           icon={<AntDesign name="user" size={24} color="black" />}
-          onChangeText={(text) => setCccd(text)}
-          type={""}
+          onChangeText={(text) => setCccd(text)} type={''}
         />
+
+        <Text style={styles.inputLabel}>Vai trò</Text>
+        <View style={styles.inputRow}>
+          <FontAwesome6 name="user-doctor" size={24} color="black" />
+          <Picker
+            selectedValue={role}
+            onValueChange={(itemValue) => setRole(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Admin" value="Admin" />
+            <Picker.Item label="Bác sĩ" value="Doctor" />
+            <Picker.Item label="Dược sĩ" value="Pharmacist" />
+            <Picker.Item label="Nhân viên" value="Staff" />
+          </Picker>
+        </View>
 
         <Text style={styles.inputLabel}>Giới tính</Text>
         <View style={styles.inputRow}>
@@ -176,58 +176,46 @@ export default function SettingScreen() {
         <Text style={styles.inputLabel}>Ngày tháng năm sinh</Text>
         <TouchableOpacity style={styles.inputRow} onPress={showDatePicker}>
           <FontAwesome name="birthday-cake" size={24} color="black" />
-          <Text style={styles.textInput}>
-            {dateOfBirth ? dateOfBirth : "Chọn ngày"}
-          </Text>
+          <Text style={styles.textInput}>{dateOfBirth ? dateOfBirth : 'Chọn ngày'}</Text>
         </TouchableOpacity>
 
         <CustomInput
           label="CCCD"
           placeholder="0802xxxxxxxx"
           icon={<AntDesign name="idcard" size={24} color="black" />}
-          onChangeText={(text) => setCccd(text)}
-          type={""}
+          onChangeText={(text) => setCccd(text)} type={''}
         />
         <CustomInput
           label="Địa chỉ"
           placeholder="789 Pham Ngoc Thach St, Hanoi, Vietnam"
           icon={<FontAwesome6 name="address-book" size={24} color="black" />}
-          onChangeText={(text) => setAddress(text)}
-          type={""}
+          onChangeText={(text) => setAddress(text)} type={''}
         />
         <CustomInput
           label="SĐT"
           placeholder="0918xxxxxx"
           icon={<Feather name="phone" size={24} color="black" />}
-          onChangeText={(text) => setPhoneNumber(text)}
-          type={""}
+          onChangeText={(text) => setPhoneNumber(text)} type={''}
         />
         <CustomInput
           label="Email"
           placeholder="xxx@gmail.com"
           icon={<Fontisto name="email" size={24} color="black" />}
-          onChangeText={(text) => setEmail(text)}
-          type={""}
+          onChangeText={(text) => setEmail(text)} type={''}
         />
         <CustomInput
-          label="Mức hưởng bảo hiểm"
-          placeholder="0.x"
-          icon={
-            <MaterialCommunityIcons
-              name="mother-heart"
-              size={24}
-              color="black"
-            />
-          }
-          onChangeText={(text) => setEmail(text)}
-          type={""}
+          label="Password"
+          placeholder="****************"
+          icon={<AntDesign name="unlock" size={24} color="black" />}
+          type="password"
+          onChangeText={(text) => setPassword(text)}
         />
       </View>
 
       <MyButton
         title="Lưu"
         onPress={handleEdit}
-        buttonStyle={{ backgroundColor: "green", marginBottom: spacing.md }}
+        buttonStyle={{ backgroundColor: 'green', marginBottom: spacing.md }}
       />
 
       {/* Modal chọn ngày */}
@@ -256,7 +244,7 @@ const styles = StyleSheet.create({
     width: 140,
     borderRadius: 70,
     borderWidth: 4,
-    borderColor: "#007bff",
+    borderColor: '#007bff',
   },
   editContainer: {
     height: 35,
@@ -273,7 +261,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: fontSize.md,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: "black",
     marginVertical: spacing.sm,
   },
@@ -288,7 +276,7 @@ const styles = StyleSheet.create({
   picker: {
     flex: 1,
     marginLeft: spacing.sm,
-    color: "#cccccc",
+    color: '#cccccc',
   },
   textInput: {
     flex: 1,

@@ -4,31 +4,41 @@ import { useRouter } from 'expo-router';
 import MyButton from '@/components/MyButton';
 import FormField from '@/components/FormField';
 import { useAuth } from '@/context/AuthContext';
+import { login } from '@/services/api';
 
 const SignIn = () => {
   const router = useRouter();
   const { setUser } = useAuth();
-  const [userName, setUserName] = useState('admin');
-  const [password, setPassword] = useState('12345');
+  const [userName, setUserName] = useState('mie');
+  const [password, setPassword] = useState('1593572684');
   const [error, setError] = useState<string>('');
 
-  const validateLogin = () => {
+  const validateLogin = async () => {
     if (userName === '' || password === '') {
       setError('Please enter both username and password');
-    } else if (userName === 'admin' && password === '12345') {
-      setUser({
-        token: 'fake_token',
-        username: 'admin',
-        role: 'admin',
-        employee_id: '0001',
-        image: null
-      });
-      router.navigate('/(tabs)');
     } else {
-      setError('Invalid username or password');
+      try {
+        const response = await login(userName, password);
+        if (response && response.token) {
+          setUser({
+            token: response.token,
+            username: response.username,
+            role: response.role,
+            employee_id: response.employee_id,
+            image: response.image || null,
+          });
+          router.replace('/(tabs)');
+        } else {
+          setError('Invalid username or password');
+        }
+      } catch (error: any) {
+        // Lỗi xảy ra từ login
+        console.error('Login error:', error.message);
+        setError(error.message || 'An error occurred during login');
+      }
     }
   };
-
+  
   const onForgotPassword = () => {
     router.push('/forget-pass');
   };
