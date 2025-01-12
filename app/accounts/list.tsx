@@ -12,9 +12,8 @@ const data: Employee[] = require('@/data/employees.json');
 
 const ListEmployees = () => {
   const { role } = useLocalSearchParams();
-
+  const router = useRouter();
   const [fadeAnim] = useState(new Animated.Value(0)); // Khởi tạo hiệu ứng mờ
-  console.log(role);
   const [selectedRole, setSelectedRole] = useState(role); // Trạng thái vai trò được chọn
   const [filteredData, setFilteredData] = useState<Employee[]>(data); // Dữ liệu đã lọc
   const [modalVisible, setModalVisible] = useState(false); // Modal lọc
@@ -48,6 +47,11 @@ const ListEmployees = () => {
     }
   };
 
+  const handleAdd = () => {
+    console.log("Hello");
+    router.push('./add');
+  }
+
   return (
     <View style={styles.container}>
       {/* Tiêu đề động */}
@@ -55,7 +59,9 @@ const ListEmployees = () => {
 
       {/* Thanh tìm kiếm và icon lọc */}
       <View style={styles.searchContainer}>
-        <SearchText placeholder="Nhập tên nhân viên" style={styles.searchText} />
+        <SearchText placeholder="Nhập tên nhân viên" style={styles.searchText} setSearchText={function (text: string): void {
+          throw new Error('Function not implemented.');
+        } } />
         <TouchableOpacity style={styles.filterIconContainer} onPress={() => setModalVisible(true)}>
           <MaterialIcons name="filter-list" size={30} color="#007bff" />
           <Text style={styles.filterText}>Lọc</Text>
@@ -89,7 +95,7 @@ const ListEmployees = () => {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <Animated.View style={[styles.itemContainer, { opacity: fadeAnim }]}>
-            <Link href={`/accounts/doctors/${item.id}`} params={{ item }}>
+            <Link href={`/accounts/${item.id}`} params={{ item }}>
               <Image source={item.image ? { uri: item.image } : require('@/assets/images/avatar/default.png')} style={styles.image} />
               <View style={styles.textContainer}>
                 <Text style={styles.name}>{item.full_name}</Text>
@@ -102,7 +108,7 @@ const ListEmployees = () => {
       />
       
       {/* Nút thêm bác sĩ */}
-      <MyButton title="Thêm nhân viên mới" style={styles.button} />
+      <MyButton title="Thêm nhân viên mới" style={styles.button} onPress={handleAdd}/>
     </View>
   );
 };

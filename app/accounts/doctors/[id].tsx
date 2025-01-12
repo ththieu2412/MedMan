@@ -1,279 +1,255 @@
-import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, Alert, TextInput } from 'react-native';
 import React, { useState } from 'react';
+import MyButton from '@/components/MyButton'; // Import component MyButton
 import { useRouter } from 'expo-router';
-import { Employee } from '@/types';
+import { MaterialIcons } from '@expo/vector-icons';
+import { TouchableOpacity } from 'react-native';
 
-const DetailDoctor = () => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [doctorData, setDoctorData] = useState({
-    full_name: "Dr. John Doe",
-    date_of_birth: "01/01/1980",
-    gender: "Nam",
-    idCard: "123456789",
-    phone_number: "0901234567",
-    address: "123 Đường ABC, TP.HCM",
-    email: "john.doe@example.com",
-    role: "Bác sĩ",
-    avatar: require('@/assets/images/avatar/default.png'),
+const EmployeeDetail = () => {
+  const [employee, setEmployee] = useState({
+    id: 3,
+    full_name: 'Lê Minh C',
+    date_of_birth: '1988-05-15',
+    gender: 'Nam',
+    id_card: '345678901234',
+    phone_number: '567-890-1234',
+    address: '789 Pham Ngoc Thach St, Hanoi, Vietnam',
+    email: 'leminhc@example.com',
+    image: null,
+    role: 'Staff',
+    isActive: true,
   });
 
-  const [editedDoctorData, setEditedDoctorData] = useState({ ...doctorData }); 
   const router = useRouter();
 
-  const closeModal = () => {
-    setModalVisible(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedEmployee, setEditedEmployee] = useState({ ...employee });
+
+  const handleEditPress = () => {
+    if (isEditing) {
+      // Save the edited information
+      setEmployee({ ...editedEmployee });
+    }
+    setIsEditing(!isEditing);
   };
 
-  const openModal = () => {
-    setEditedDoctorData({ ...doctorData }); 
-    setModalVisible(true);
-  };
-
-  const handleDelete = () => {
+  const handleDeletePress = () => {
     Alert.alert(
-      'Xác nhận xóa',
-      'Bạn có chắc chắn muốn xóa bác sĩ này?',
+      'Confirm Delete',
+      `Are you sure you want to delete ${employee.full_name}?`,
       [
         {
-          text: 'Hủy',
-          onPress: () => console.log('Hủy xóa'),
+          text: 'Cancel',
+          onPress: () => {
+            Alert.alert('Delete canceled', 'You have canceled the delete action.');
+          },
           style: 'cancel',
         },
         {
-          text: 'Xóa',
+          text: 'Delete',
           onPress: () => {
-            router.back();
+            console.log(`Employee ${employee.full_name} has been deleted.`);
+            router.push(`/accounts/list?role=${employee.role}`);
           },
+          style: 'destructive',
         },
-      ],
-      { cancelable: true }
+      ]
     );
   };
 
-  const handleSave = () => {
-    setDoctorData({ ...editedDoctorData }); 
-    closeModal(); 
-  };
-
-  // Hàm thay đổi giá trị trong modal
-  const handleChange = (field: keyof Employee, value: string) => {
-    setEditedDoctorData(prevState => ({
+  const handleInputChange = (field, value) => {
+    setEditedEmployee(prevState => ({
       ...prevState,
       [field]: value,
     }));
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Image source={doctorData.avatar} style={styles.avatar} />
+    <ScrollView style={styles.container}>
+      <View style={styles.imageContainer}>
+        <Image
+          source={employee.image ? { uri: employee.image } : require('@/assets/images/avatar/default.png')}
+          style={styles.image}
+          resizeMode="cover"
+        />
+        {/* Icon chỉnh sửa ảnh nằm lòng vào avatar */}
+        <TouchableOpacity style={styles.editIcon} onPress={() => console.log('Edit Avatar')}>
+          <MaterialIcons name="edit" size={24} color="white" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.infoContainer}>
-        <Text style={styles.name}>{doctorData.full_name}</Text>
-        <Text style={styles.info}>Ngày sinh: {doctorData.date_of_birth}</Text>
-        <Text style={styles.info}>Giới tính: {doctorData.gender}</Text>
-        <Text style={styles.info}>CMND: {doctorData.idCard}</Text>
-        <Text style={styles.info}>Số điện thoại: {doctorData.phone_number}</Text>
-        <Text style={styles.info}>Địa chỉ: {doctorData.address}</Text>
-        <Text style={styles.info}>Email: {doctorData.email}</Text>
-        <Text style={styles.info}>Vai trò: {doctorData.role}</Text>
+        {renderDetailItem('🧑 Full Name', isEditing ? (
+          <TextInput
+            style={styles.input}
+            value={editedEmployee.full_name}
+            onChangeText={(value) => handleInputChange('full_name', value)}
+          />
+        ) : (
+          <Text>{employee.full_name}</Text>
+        ))}
+        {renderDetailItem('📅 Date of Birth', isEditing ? (
+          <TextInput
+            style={styles.input}
+            value={editedEmployee.date_of_birth}
+            onChangeText={(value) => handleInputChange('date_of_birth', value)}
+          />
+        ) : (
+          <Text>{employee.date_of_birth}</Text>
+        ))}
+        {renderDetailItem('🧑 Gender', isEditing ? (
+          <TextInput
+            style={styles.input}
+            value={editedEmployee.gender}
+            onChangeText={(value) => handleInputChange('gender', value)}
+          />
+        ) : (
+          <Text>{employee.gender}</Text>
+        ))}
+        {renderDetailItem('🆔 ID Card', isEditing ? (
+          <TextInput
+            style={styles.input}
+            value={editedEmployee.id_card}
+            onChangeText={(value) => handleInputChange('id_card', value)}
+          />
+        ) : (
+          <Text>{employee.gender}</Text>
+        ))}
+        {renderDetailItem('📞 Phone', isEditing ? (
+          <TextInput
+            style={styles.input}
+            value={editedEmployee.phone_number}
+            onChangeText={(value) => handleInputChange('phone_number', value)}
+          />
+        ) : (
+          <Text>{employee.phone_number}</Text>
+        ))}
+        {renderDetailItem('🏠 Address', isEditing ? (
+          <TextInput
+            style={styles.input}
+            value={editedEmployee.address}
+            onChangeText={(value) => handleInputChange('address', value)}
+          />
+        ) : (
+          <Text>{employee.address}</Text>
+        ))}
+        {renderDetailItem('📧 Email', isEditing ? (
+          <TextInput
+            style={styles.input}
+            value={editedEmployee.email}
+            onChangeText={(value) => handleInputChange('email', value)}
+          />
+        ) : (
+          <Text>{employee.email}</Text>
+        ))}
+        {renderDetailItem('💼 Role', employee.role)} {/* Role không thể chỉnh sửa */}
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={[styles.button, styles.editButton]} onPress={openModal}>
-          <Text style={styles.buttonText}>Sửa</Text>
-        </TouchableOpacity>
+        {/* Nút Edit */}
+        <MyButton
+          title={isEditing ? 'Save' : 'Edit'}
+          onPress={handleEditPress}
+          buttonStyle={{ backgroundColor: '#4CAF50', width: '400' }}
+        />
 
-        <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={handleDelete}>
-          <Text style={styles.buttonText}>Xóa</Text>
-        </TouchableOpacity>
+        {/* Nút Delete */}
+        <MyButton
+          title="Delete"
+          onPress={handleDeletePress}
+          buttonStyle={{ backgroundColor: '#F44336', width: '400' }}
+        />
       </View>
-
-      {/* Modal sửa thông tin bác sĩ */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={closeModal}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalHeader}>Sửa Thông Tin Bác Sĩ</Text>
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Tên bác sĩ"
-              value={editedDoctorData.full_name}
-              onChangeText={(text) => handleChange('full_name', text)} // Cập nhật tên bác sĩ
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Ngày sinh"
-              value={editedDoctorData.date_of_birth}
-              onChangeText={(text) => handleChange('date_of_birth', text)} // Cập nhật ngày sinh
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Số điện thoại"
-              value={editedDoctorData.phone_number}
-              onChangeText={(text) => handleChange('phone_number', text)} // Cập nhật số điện thoại
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              value={editedDoctorData.email}
-              onChangeText={(text) => handleChange('email', text)} // Cập nhật email
-            />
-
-            <View style={styles.modalButtonContainer}>
-              <TouchableOpacity style={[styles.modalButton, styles.saveButton]} onPress={handleSave}>
-                <Text style={styles.modalButtonText}>Lưu</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={closeModal}>
-                <Text style={styles.modalButtonText}>Hủy</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </ScrollView>
   );
 };
 
+const renderDetailItem = (title, value) => (
+  <View style={styles.detailItem}>
+    <Text style={styles.detailTitle}>{title}</Text>
+    <Text style={styles.detailText}>{value}</Text>
+  </View>
+);
+
+export default EmployeeDetail;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f7f7', // Màu nền tổng thể của trang
-    paddingHorizontal: 20, // Thêm khoảng cách hai bên để giao diện không bị sát
+    backgroundColor: '#f9f9f9',
   },
-  header: {
-    backgroundColor: '#007bff', // Nền xanh
-    paddingVertical: 60, // Tăng khoảng cách cho phần trên
-    alignItems: 'center', // Căn giữa các phần tử
-    justifyContent: 'center',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    marginBottom: 30, // Thêm khoảng cách cho phần thông tin bác sĩ
-    marginTop: 20, // Đẩy xuống dưới một chút
+  imageContainer: {
+    alignItems: 'center',
+    marginVertical: 20,
+    position: 'relative',
   },
-  avatar: {
-    width: 140,
-    height: 140,
-    borderRadius: 70, // Bo tròn ảnh đại diện
-    borderWidth: 5,
-    borderColor: '#ffffff', // Viền trắng cho ảnh đại diện
-    marginTop: 40, // Thêm khoảng cách từ trên để avatar không bị căn giữa
+  image: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: '#007bff',
+  },
+  editIcon: {
+    position: 'absolute',
+    bottom: -5,
+    right: -5,
+    backgroundColor: '#007bff',
+    borderRadius: 15,
+    padding: 5,
   },
   infoContainer: {
-    padding: 25,
-    backgroundColor: '#ffffff', // Nền trắng cho phần thông tin
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: -20, // Đẩy phần thông tin lên để gắn sát vào header
-    shadowColor: '#000', 
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 10, // Bóng mờ cho Android
-  },
-  name: {
-    fontSize: 30, // Tăng kích thước chữ
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 15, // Tăng khoảng cách dưới tên
-  },
-  info: {
-    fontSize: 18, // Chữ lớn hơn cho thông tin
-    color: '#666',
-    marginBottom: 12, // Tăng khoảng cách giữa các thông tin
-    lineHeight: 25, // Tăng chiều cao dòng để dễ đọc
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    marginTop: 30,
-    paddingBottom: 20,
-  },
-  button: {
-    width: 150,
-    paddingVertical: 15,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000', // Thêm bóng mờ cho nút
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5, // Bóng mờ cho Android
-  },
-  editButton: {
-    backgroundColor: '#4CAF50', // Màu xanh lá cho nút sửa
-  },
-  deleteButton: {
-    backgroundColor: '#F44336', // Màu đỏ cho nút xóa
-  },
-  buttonText: {
-    fontSize: 20, // Tăng kích thước chữ của nút
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  
-  // Style cho modal
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Màu nền mờ cho modal
-  },
-  modalContainer: {
+    paddingHorizontal: 20,
     backgroundColor: '#fff',
-    padding: 20,
     borderRadius: 10,
-    width: '80%',
-    alignItems: 'center',
-  },
-  modalHeader: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    paddingVertical: 20,
+    marginHorizontal: 10,
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  input: {
-    width: '100%',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginBottom: 15,
-    fontSize: 16,
-  },
-  modalButtonContainer: {
-    width: '100%',
+  detailItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20, // Thêm khoảng cách phía trên các nút
+    alignItems: 'center',
+    marginBottom: 15,
   },
-  modalButton: {
-    width: '48%',
-    paddingVertical: 15,
-    borderRadius: 8,
+  detailTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+  },
+  detailText: {
+    fontSize: 16,
+    color: '#555',
+    flex: 2,
+  },
+  inputWrapper: {
+    flex: 2,
+    borderBottomWidth: 2,
+    borderBottomColor: '#007bff',  // Thêm màu cho đường gạch dưới
+  },
+  input: {
+    fontSize: 16,
+    color: '#555',
+    flex: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    paddingHorizontal: 5,
+  },
+  editing: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#007bff', // Dễ dàng thay đổi màu khi đang chỉnh sửa
+  },
+  buttonContainer: {
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000', // Thêm bóng mờ cho các nút
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  saveButton: {
-    backgroundColor: '#4CAF50', // Màu xanh lá cho nút Lưu
-  },
-  cancelButton: {
-    backgroundColor: '#F44336', // Màu đỏ cho nút Hủy
-  },
-  modalButtonText: {
-    fontSize: 18,
-    color: '#fff',
-    fontWeight: 'bold',
+    marginVertical: 20,
   },
 });
 
-export default DetailDoctor;

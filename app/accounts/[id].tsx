@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import Header from "@/components/Profile/Header";
 import { fontSize, spacing } from "@/constants/dimensions";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import CustomInput from "@/components/CustomInput";
@@ -22,7 +21,6 @@ import { Picker } from "@react-native-picker/picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { format } from "date-fns";
 import * as ImagePicker from "expo-image-picker";
-import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIcons";
 
 export default function SettingScreen() {
   const [image, setImage] = useState(null);
@@ -39,13 +37,15 @@ export default function SettingScreen() {
 
   // Hàm xử lý khi nhấn nút sửa thông tin
   const handleEdit = () => {
+    console.log("Đang sửa");
+
     Alert.alert("Xác nhận", "Bạn có muốn tạo nhân viên mới?", [
       {
         text: "Đồng ý",
         onPress: () => {
           console.log("Nhân viên đã được tạo!");
           console.log(role);
-          router.push(`/(tabs)/patients`);
+          router.push(`/accounts/list?role=${role}`);
         },
       },
       {
@@ -67,6 +67,26 @@ export default function SettingScreen() {
   const handleDateConfirm = (date) => {
     setDateOfBirth(format(date, "dd/MM/yyyy")); // Định dạng ngày tháng
     hideDatePicker();
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      "Xác nhận",
+      "Bạn có chắc chắn muốn xóa nhân viên này không?",
+      [
+        {
+          text: "Đồng Ý",
+          onPress: () => {
+            router.replace("./list?role=Staff");
+          },
+        },
+        {
+          text: "Hủy",
+          style: "cancel",
+        },
+      ],
+      { cancelable: false }
+    );
   };
 
   const handleChoosePhoto = async () => {
@@ -160,6 +180,21 @@ export default function SettingScreen() {
           type={""}
         />
 
+        <Text style={styles.inputLabel}>Vai trò</Text>
+        <View style={styles.inputRow}>
+          <FontAwesome6 name="user-doctor" size={24} color="black" />
+          <Picker
+            selectedValue={role}
+            onValueChange={(itemValue) => setRole(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Admin" value="Admin" />
+            <Picker.Item label="Bác sĩ" value="Doctor" />
+            <Picker.Item label="Dược sĩ" value="Pharmacist" />
+            <Picker.Item label="Nhân viên" value="Staff" />
+          </Picker>
+        </View>
+
         <Text style={styles.inputLabel}>Giới tính</Text>
         <View style={styles.inputRow}>
           <FontAwesome name="transgender" size={24} color="black" />
@@ -210,17 +245,11 @@ export default function SettingScreen() {
           type={""}
         />
         <CustomInput
-          label="Mức hưởng bảo hiểm"
-          placeholder="0.x"
-          icon={
-            <MaterialCommunityIcons
-              name="mother-heart"
-              size={24}
-              color="black"
-            />
-          }
-          onChangeText={(text) => setEmail(text)}
-          type={""}
+          label="Password"
+          placeholder="****************"
+          icon={<AntDesign name="unlock" size={24} color="black" />}
+          type="password"
+          onChangeText={(text) => setPassword(text)}
         />
       </View>
 
@@ -228,6 +257,12 @@ export default function SettingScreen() {
         title="Lưu"
         onPress={handleEdit}
         buttonStyle={{ backgroundColor: "green", marginBottom: spacing.md }}
+      />
+
+      <MyButton
+        title="Xóa"
+        onPress={handleDelete}
+        buttonStyle={{ backgroundColor: "red", marginTop: -20 }}
       />
 
       {/* Modal chọn ngày */}
@@ -288,7 +323,6 @@ const styles = StyleSheet.create({
   picker: {
     flex: 1,
     marginLeft: spacing.sm,
-    color: "#cccccc",
   },
   textInput: {
     flex: 1,

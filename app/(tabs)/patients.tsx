@@ -4,14 +4,22 @@ import Header from '@/components/Home/Header';
 import PatientListScreen from '../prescriptions/patients/list';
 import MyButton from '@/components/MyButton';
 import SearchText from '@/components/SearchText';
+import { useRouter } from 'expo-router';
 
 const Patients = () => {
+  const router = useRouter();
+  const handlePress = () => {
+    router.push('/prescriptions/patients/add');
+  }
+
   return (
     <View style={styles.container}>
       <Header />
       
       {/* Phần tìm kiếm */}
-      <SearchText placeholder={"Nhập tên bệnh nhân"} style={styles.search} />
+      <SearchText placeholder={"Nhập tên bệnh nhân"} style={styles.search} setSearchText={function (text: string): void {
+        throw new Error('Function not implemented.');
+      } } />
       
       {/* Phần tiêu đề */}
       {/* <View style={styles.titleContainer}> */}
@@ -22,7 +30,7 @@ const Patients = () => {
       <PatientListScreen style={styles.patientList} />
 
       {/* Nút thêm bệnh nhân */}
-      <MyButton title={"Thêm bệnh nhân"} style={styles.addButton} />
+      <MyButton title={"Thêm bệnh nhân"} style={styles.addButton} onPress={handlePress}/>
     </View>
   );
 }
@@ -38,17 +46,9 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   search: {
-    marginBottom: 20, // Khoảng cách giữa thanh tìm kiếm và phần tiêu đề
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ccc',
+    marginBottom: 20, 
     paddingHorizontal: 15,
     paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 2,
   },
   titleContainer: {
     backgroundColor: '#ffffff',
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   patientList: {
-    marginTop: 20, // Khoảng cách giữa phần tiêu đề và danh sách bệnh nhân
+    marginTop: 20, 
   },
   addButton: {
     marginTop: 30,
