@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 
@@ -172,3 +173,4 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 });
+

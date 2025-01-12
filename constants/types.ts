@@ -6,7 +6,18 @@ export interface ApiResponse<T> {
   status: string;
   errorMessage?: string | null;
 }
-
+// Interface cho tham số tìm kiếm
+export interface SearchWarehouseFilters {
+  address?: string;  // Địa chỉ của kho
+  is_active?: boolean;  // Trạng thái hoạt động (true/false)
+}
+export interface SearchIRFilters {
+  start_date?: string;
+  end_date?: string;
+  employee_name?: string;
+  warehouse_name?: string;
+  is_approved?: boolean;
+}
 export interface Medicine {
   id: number;
   medicine_name: string;
@@ -14,6 +25,7 @@ export interface Medicine {
   sale_price: number;
   description?: string | null;
   stock_quantity: number;
+  image: string | null; 
 }
 
 
@@ -64,7 +76,7 @@ export interface Prescription {
   medication_name: string;
   dosage: string;
   instructions: string;
-  patient?: Patient; // Thêm thông tin bệnh nhân nếu cần (tuỳ chọn)
+  patient?: number; // Thêm thông tin bệnh nhân nếu cần (tuỳ chọn)
 }
 interface PrescriptionDetail {
   id: number; 
