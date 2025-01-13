@@ -21,7 +21,7 @@ api.interceptors.request.use(
         if (token) {
             // Lấy token từ AsyncStorage hoặc AuthContext
             const parsedUser = JSON.parse(token);
-            console.log(token)
+            console.log(token);
             config.headers.Authorization = `Token ${parsedUser?.token}`;
         }
         return config;
