@@ -20,12 +20,7 @@ export const getMedicineList = async (token: string) => {
 
 export const createMedicine = async (token: string, medicineData: object) => {
   try {
-    const response = await api.post('/warehouses/medicines/', medicineData, {
-      headers: {
-        Authorization: `Token ${token}`, 
-        'Content-Type': 'application/json', 
-      },
-    });
+    const response = await api.post('/warehouses/medicines/');
     return response.data;
   } catch (error: any) {
     if (error.response) {
@@ -43,12 +38,7 @@ export const createMedicine = async (token: string, medicineData: object) => {
 
 export const detailMedicine = async (token: string, medicineId: number) => {
   try {
-    const response = await api.get(`/warehouses/medicines/${medicineId}/`, {
-      headers: {
-        Authorization: `Token ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await api.get(`/warehouses/medicines/${medicineId}/`);
     return response.data;
   } catch (error: any) {
     if (error.response) {
