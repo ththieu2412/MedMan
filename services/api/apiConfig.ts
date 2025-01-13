@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'http://192.168.1.45:8000/api';
+const BASE_URL = 'http://192.168.1.46:8000/api';
 
 // 🌐 Thiết lập URL gốc của API
 const api = axios.create({
