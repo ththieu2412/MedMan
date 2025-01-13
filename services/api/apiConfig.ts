@@ -1,5 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from "@/context/AuthContext"; // Import useAuth từ AuthContext của bạn
 
 const BASE_URL = 'http://192.168.1.46:8000/api';
 
@@ -15,16 +16,19 @@ const api = axios.create({
 // 🛡️ Interceptor để thêm token vào header
 api.interceptors.request.use(
     async (config) => {
-        const token = await AsyncStorage.getItem('token');
+        // Lấy token từ AsyncStorage
+        const token = await AsyncStorage.getItem("user");
         if (token) {
-            config.headers.Authorization = `Token ${token}`;
+            // Lấy token từ AsyncStorage hoặc AuthContext
+            const parsedUser = JSON.parse(token);
+            config.headers.Authorization = `Token ${parsedUser?.token}`;
         }
         return config;
     },
     (error) => {
         return Promise.reject(error);
     }
-)
+);
 
 // 🧩 Interceptor để xử lý lỗi
 api.interceptors.response.use(

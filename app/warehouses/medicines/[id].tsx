@@ -2,11 +2,11 @@ import React from "react";
 import { StyleSheet, Text, View, Image, Alert } from "react-native";
 import MyButton from "@/components/MyButton"; // Đảm bảo đường dẫn đúng với nơi bạn lưu component MyButton
 import { router, useRouter } from "expo-router";
-import { useSearchParams } from "expo-router/build/hooks";
+import { useLocalSearchParams, useSearchParams } from "expo-router/build/hooks";
 
 const MedicineDetails = () => {
   const router = useRouter();
-  const { id } = useSearchParams();
+  const { id } = useLocalSearchParams;
 
   console.log(id);
 

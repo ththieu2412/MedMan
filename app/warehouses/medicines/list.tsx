@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { getMedicineList } from "@/services/api/medicineService";
 import { useToken } from "@/hooks/useToken";
 import { Medicine } from "@/types";
@@ -36,30 +36,25 @@ const MedicineList = () => {
   }, []);
 
   const renderItem = ({ item }: { item: Medicine }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => {
-        // Kiểm tra đường dẫn URL được tạo ra
-        console.log(`/warehouses/medicines/${item.id}`);
-        router.push(`/warehouses/medicines/${item.id}`);
-      }}
-    >
-      {/* Ảnh thuốc */}
-      <Image
-        source={item.image ? { uri: item.image } : defaultImage}
-        style={styles.image}
-      />
+    <Link href={`/warehouses/medicines/${item.id}`} asChild>
+      <TouchableOpacity style={styles.card}>
+        {/* Ảnh thuốc */}
+        <Image
+          source={item.image ? { uri: item.image } : defaultImage}
+          style={styles.image}
+        />
 
-      {/* Thông tin thuốc */}
-      <View style={styles.info}>
-        <Text style={styles.name}>{item.medicine_name}</Text>
-        <Text style={styles.price}>Price: {item.sale_price} VND</Text>
-        <Text style={styles.quantity}>
-          Stock: {item.stock_quantity} {item.unit}
-        </Text>
-        <Text style={styles.name}>{item.id}</Text>
-      </View>
-    </TouchableOpacity>
+        {/* Thông tin thuốc */}
+        <View style={styles.info}>
+          <Text style={styles.name}>{item.medicine_name}</Text>
+          <Text style={styles.price}>Price: {item.sale_price} VND</Text>
+          <Text style={styles.quantity}>
+            Stock: {item.stock_quantity} {item.unit}
+          </Text>
+          <Text style={styles.name}>{item.id}</Text>
+        </View>
+      </TouchableOpacity>
+    </Link>
   );
 
   return (
