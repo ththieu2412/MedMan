@@ -10,5 +10,6 @@ export interface AuthContextType {
     user: User | null;
     setUser: (user: User) => Promise<void>;
     logout: () => Promise<void>;
-    isLoggedIn: () => boolean; // Thêm phương thức isLoggedIn
+    isLoggedIn: () => boolean; 
+    getToken: () => string | null;
 }

@@ -1,7 +1,9 @@
 export interface Medicine{
     id: number;
-    name: string;
-    price: number;
-    stock: number;
+    medicine_name: string;
+    sale_price: number;
+    stock_quantity: number;
+    description: string;
+    unit: string;
     image?: string;
 }
