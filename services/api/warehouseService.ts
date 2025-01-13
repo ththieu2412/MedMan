@@ -1,13 +1,9 @@
-import { Warehouse } from './../../constants/types';
+import { Warehouse } from "@/constants/types";
 import api from "./apiConfig";
 
 export const getWarehouseList = async (token: string) => {
   try {
-    const response = await api.get('/warehouses/warehouses/', {
-      headers: {
-        Authorization: `Token ${token}`, // Thêm token vào header
-      },
-    });
+    const response = await api.get('/warehouses/warehouses/');
     return response.data;
   } catch (error: any) {
     if (error.response) {
@@ -23,14 +19,9 @@ export const getWarehouseList = async (token: string) => {
   }
 };
 
-export const createWarehouse = async (token: string, warehouseData: object) => {
+export const createWarehouse = async (token: string, warehouseData: Warehouse) => {
   try {
-    const response = await api.post('/warehouses/warehouses/', warehouseData, {
-      headers: {
-        Authorization: `Token ${token}`, 
-        'Content-Type': 'multipart/form-data', 
-      },
-    });
+    const response = await api.post('/warehouses/warehouses/',{ warehouseData });
     return response.data;
   } catch (error: any) {
     if (error.response) {
@@ -46,14 +37,9 @@ export const createWarehouse = async (token: string, warehouseData: object) => {
   }
 };
 
-export const detailMedicine = async (token: string, medicineId: number) => {
+export const detailWarehouse = async (token: string, warehouseId: number) => {
   try {
-    const response = await api.get(`/warehouses/medicines/${medicineId}/`, {
-      headers: {
-        Authorization: `Token ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await api.get(`/warehouses/warehouse-list/${warehouseId}/`);
     return response.data;
   } catch (error: any) {
     if (error.response) {
@@ -70,14 +56,9 @@ export const detailMedicine = async (token: string, medicineId: number) => {
 };
 
 
-export const deleteMedicine = async (token: string, medicineId: number) => {
+export const deleteWarehouse = async (token: string, warehouseId: number) => {
   try {
-    const response = await api.delete(`/warehouses/medicines/${medicineId}/`, {
-      headers: {
-        Authorization: `Token ${token}`, 
-        'Content-Type': 'application/json', 
-      },
-    });
+    const response = await api.delete(`/warehouses/warehouses/${warehouseId}/`);
     return response.data;
   } catch (error: any) {
     if (error.response) {
