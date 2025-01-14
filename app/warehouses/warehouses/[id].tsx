@@ -83,8 +83,10 @@ const WarehouseDetails = () => {
         onPress: async () => {
           try {
             const response = await deleteWarehouse(token, warehouse.id);
+
             console.log(`Đã xóa kho: ${warehouse.id}`, response.errorMessage);
             router.replace("/warehouses/warehouses/list"); // Điều hướng về danh sách kho
+
             Alert.alert("Xóa kho thành công!");
           } catch (error) {
             console.error("Xóa kho thất bại:", error);
@@ -163,13 +165,19 @@ const WarehouseDetails = () => {
         <View style={styles.detailContainer}>
           <Text style={styles.label}>Trạng Thái:</Text>
           {isEditing ? (
-            <Switch
-              value={updatedWarehouse.is_active} // Dùng updatedWarehouse.is_active
-              onValueChange={
-                (value) =>
-                  setUpdatedWarehouse({ ...updatedWarehouse, is_active: value }) // Cập nhật giá trị
-              }
-            />
+
+            <View style={styles.switchWrapper}>
+              <Switch
+                value={updatedWarehouse.is_active}
+                onValueChange={(value) =>
+                  setUpdatedWarehouse({ ...updatedWarehouse, is_active: value })
+                }
+              />
+              <Text style={styles.switchLabel}>
+                {updatedWarehouse.is_active ? "Hoạt động" : "Không hoạt động"}
+              </Text>
+            </View>
+
           ) : (
             <Text style={styles.value}>
               {warehouse.is_active ? "Hoạt động" : "Không hoạt động"}
@@ -210,7 +218,6 @@ const WarehouseDetails = () => {
 };
 
 export default WarehouseDetails;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -227,6 +234,7 @@ const styles = StyleSheet.create({
   detailContainer: {
     flexDirection: "row",
     marginBottom: 15,
+    alignItems: "center",
   },
   label: {
     fontSize: 16,
@@ -239,6 +247,18 @@ const styles = StyleSheet.create({
     flex: 2,
     color: "black",
   },
+  switchWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start", // Giữ cho Switch luôn căn trái
+    gap: 50,
+    marginLeft: 10, // Khoảng cách từ label đến switch
+  },
+  switchLabel: {
+    fontSize: 16,
+    marginLeft: 10,
+    color: "black", // Màu cho "Hoạt động"
+  },
   input: {
     fontSize: 16,
     flex: 2,
@@ -246,5 +266,28 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     padding: 5,
     color: "black",
+  },
+  button: {
+    backgroundColor: "#1E88E5",
+    padding: 10,
+    borderRadius: 8,
+    marginVertical: 10,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  saveButton: {
+    backgroundColor: "#4CAF50",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

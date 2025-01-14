@@ -36,7 +36,34 @@ export const createIR = async (token: string, IRData: ImportReceipt) => {
     }
   }
 };
+// Hàm cập nhật chi tiết phiếu nhập theo id phiếu nhập
+export const updateIR = async (
+  token: string,
+  id: number,
+  IRData: ImportReceipt
+) => {
+  try {
+    // Lọc ra chỉ những trường cần thiết
+    const dataToUpdate = {
+      warehouse: IRData.warehouse,
+      is_approved: IRData.is_approved,
+    };
 
+    // Gửi API với dữ liệu đã lọc
+    const response = await api.put(
+      `/warehouses/import-receipts/${id}/`,
+      dataToUpdate
+    );
+
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      console.error("Error response:", error.response.data);
+      return error.response.data;
+    }
+    
+  }
+};
 // Hàm tạo phiếu nhập và chi tiết phiếu nhập
 export const createIRAndIRDetail = async (token: string, IRData: ImportReceipt) => {
   try {
