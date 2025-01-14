@@ -83,7 +83,7 @@ const Categories = () => {
     }
 
     if (user?.role === "staff") {
-      return ["Patient", "Medicine", "Export"].includes(category.name);
+      return ["Patient", "Medicine", "Import", "Warehouse"].includes(category.name);
     }
     return false; // Mặc định không cho phép các role khác
   });
@@ -112,6 +112,12 @@ const Categories = () => {
       case "Warehouse":
         router.push("/warehouses/warehouses/list");
         break;
+      case "Export":
+        router.push("/warehouses/exportReceipts/list");
+        break;
+      // case "Report":
+      //   router.push("/warehouses/warehouses/list");
+      //   break;
       default:
         break;
     }
