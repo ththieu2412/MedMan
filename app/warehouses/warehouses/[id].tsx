@@ -3,7 +3,11 @@ import { StyleSheet, Text, View, Alert, TextInput, Switch } from "react-native";
 import MyButton from "@/components/MyButton";
 import { useRouter } from "expo-router";
 import { useLocalSearchParams } from "expo-router/build/hooks";
-import { detailWarehouse, updateWarehouse, deleteWarehouse } from "@/services/api/warehouseService"; // Import API service
+import {
+  detailWarehouse,
+  updateWarehouse,
+  deleteWarehouse,
+} from "@/services/api/warehouseService"; // Import API service
 import { useToken } from "@/hooks/useToken"; // Hook để lấy token
 
 const WarehouseDetails = () => {
@@ -13,7 +17,7 @@ const WarehouseDetails = () => {
   const [isEditing, setIsEditing] = useState<boolean>(false); // Trạng thái form chỉnh sửa
   const [updatedWarehouse, setUpdatedWarehouse] = useState<any>({
     address: "", // Khởi tạo address rỗng
-    is_active: false,    // Khởi tạo is_active là false
+    is_active: false, // Khởi tạo is_active là false
   }); // Lưu thông tin kho đã thay đổi
   const { id } = useLocalSearchParams(); // Lấy id từ URL
   const token = useToken(); // Lấy token cho API call
@@ -45,25 +49,28 @@ const WarehouseDetails = () => {
 
   // Xử lý cập nhật kho
   const handleUpdate = async () => {
-  if (!updatedWarehouse) return;
-  console.log("Cập nhật kho:", updatedWarehouse);
-  try {
-    // Gọi API cập nhật kho
-    const response = await updateWarehouse(token, warehouse.id, updatedWarehouse);
-    console.log("Cập nhật kho thành công:", updatedWarehouse);
-    console.log("Cập nhật kho thành công:", response);
-    
-    // Sau khi cập nhật thành công, tải lại thông tin kho
-    fetchWarehouseDetails(); // Gọi lại hàm để tải lại dữ liệu kho mới từ server
+    if (!updatedWarehouse) return;
+    console.log("Cập nhật kho:", updatedWarehouse);
+    try {
+      // Gọi API cập nhật kho
+      const response = await updateWarehouse(
+        token,
+        warehouse.id,
+        updatedWarehouse
+      );
+      console.log("Cập nhật kho thành công:", updatedWarehouse);
+      console.log("Cập nhật kho thành công:", response);
+      console.log("responese cập nhật");
+      // Sau khi cập nhật thành công, tải lại thông tin kho
+      fetchWarehouseDetails(); // Gọi lại hàm để tải lại dữ liệu kho mới từ server
 
-    Alert.alert("Cập nhật kho thành công!");
-    setIsEditing(false); // Tắt chế độ chỉnh sửa
-  } catch (error) {
-    console.error("Cập nhật kho thất bại:", error);
-    Alert.alert("Cập nhật kho thất bại. Vui lòng thử lại.");
-  }
-};
-
+      Alert.alert("Cập nhật kho thành công!");
+      setIsEditing(false); // Tắt chế độ chỉnh sửa
+    } catch (error) {
+      console.error("Cập nhật kho thất bại:", error);
+      Alert.alert("Cập nhật kho thất bại. Vui lòng thử lại.");
+    }
+  };
 
   // Xử lý xóa kho
   const handleDelete = async () => {
@@ -75,7 +82,8 @@ const WarehouseDetails = () => {
         onPress: async () => {
           try {
             const response = await deleteWarehouse(token, warehouse.id);
-            console.log(`Đã xóa kho: ${warehouse.id}`, response.errorMessage);
+
+            console.log(response);
             router.replace("/(tabs)/warehouses"); // Điều hướng về danh sách kho
             Alert.alert("Xóa kho thành công!");
           } catch (error) {
@@ -123,8 +131,12 @@ const WarehouseDetails = () => {
             <TextInput
               style={styles.input}
               value={updatedWarehouse.warehouse_name} // Dùng updatedWarehouse.warehouse_name
-              onChangeText={(text) =>
-                setUpdatedWarehouse({ ...updatedWarehouse, warehouse_name: text }) // Cập nhật giá trị
+              onChangeText={
+                (text) =>
+                  setUpdatedWarehouse({
+                    ...updatedWarehouse,
+                    warehouse_name: text,
+                  }) // Cập nhật giá trị
               }
             />
           ) : (
@@ -138,8 +150,9 @@ const WarehouseDetails = () => {
             <TextInput
               style={styles.input}
               value={updatedWarehouse.address} // Dùng updatedWarehouse.address
-              onChangeText={(text) =>
-                setUpdatedWarehouse({ ...updatedWarehouse, address: text }) // Cập nhật giá trị
+              onChangeText={
+                (text) =>
+                  setUpdatedWarehouse({ ...updatedWarehouse, address: text }) // Cập nhật giá trị
               }
             />
           ) : (
@@ -150,14 +163,21 @@ const WarehouseDetails = () => {
         <View style={styles.detailContainer}>
           <Text style={styles.label}>Trạng Thái:</Text>
           {isEditing ? (
-            <Switch
-              value={updatedWarehouse.is_active} // Dùng updatedWarehouse.is_active
-              onValueChange={(value) =>
-                setUpdatedWarehouse({ ...updatedWarehouse, is_active: value }) // Cập nhật giá trị
-              }
-            />
+            <View style={styles.switchWrapper}>
+              <Switch
+                value={updatedWarehouse.is_active}
+                onValueChange={(value) =>
+                  setUpdatedWarehouse({ ...updatedWarehouse, is_active: value })
+                }
+              />
+              <Text style={styles.switchLabel}>
+                {updatedWarehouse.is_active ? "Hoạt động" : "Không hoạt động"}
+              </Text>
+            </View>
           ) : (
-            <Text style={styles.value}>{warehouse.is_active ? "Hoạt động" : "Không hoạt động"}</Text>
+            <Text style={styles.value}>
+              {warehouse.is_active ? "Hoạt động" : "Không hoạt động"}
+            </Text>
           )}
         </View>
 
@@ -194,7 +214,6 @@ const WarehouseDetails = () => {
 };
 
 export default WarehouseDetails;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -211,6 +230,7 @@ const styles = StyleSheet.create({
   detailContainer: {
     flexDirection: "row",
     marginBottom: 15,
+    alignItems: "center",
   },
   label: {
     fontSize: 16,
@@ -223,6 +243,18 @@ const styles = StyleSheet.create({
     flex: 2,
     color: "black",
   },
+  switchWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start", // Giữ cho Switch luôn căn trái
+    gap: 50,
+    marginLeft: 10, // Khoảng cách từ label đến switch
+  },
+  switchLabel: {
+    fontSize: 16,
+    marginLeft: 10,
+    color: "black", // Màu cho "Hoạt động"
+  },
   input: {
     fontSize: 16,
     flex: 2,
@@ -230,5 +262,28 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     padding: 5,
     color: "black",
+  },
+  button: {
+    backgroundColor: "#1E88E5",
+    padding: 10,
+    borderRadius: 8,
+    marginVertical: 10,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  saveButton: {
+    backgroundColor: "#4CAF50",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

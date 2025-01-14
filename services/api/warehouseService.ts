@@ -4,38 +4,28 @@ import api from "./apiConfig";
 export const getWarehouseList = async (token: string) => {
   try {
     const response = await api.get('/warehouses/warehouse-list/');
+    console.log("response tesst ", response);
     return response.data;
   } catch (error: any) {
+   
+    // return response.data
     if (error.response) {
-      console.error('Error response:', error.response.data);
-      throw new Error(error.response.data.detail || 'Unknown error');
-    } else if (error.request) {
-      console.error('Error request:', error.request);
-      throw new Error('No response from server');
-    } else {
-      console.error('Error message:', error.message);
-      throw new Error(error.message);
+      console.error("Error response:", error.response.data);
+      return error.response.data;
     }
   }
 };
 
 export const createWarehouse = async (token: string, warehouseData: Warehouse) => {
-  const response = null;
   try {
     console.log( "warehouseData", warehouseData);
-    response = await api.post('/warehouses/warehouses/', warehouseData );
+    const response = await api.post('/warehouses/warehouses/', warehouseData );
     
-    return response;
+    return response.data;
   } catch (error: any) {
     if (error.response) {
-      console.error('Error response:', response.errorMessage);
-      throw new Error(error.response.data.detail || 'Unknown error');
-    } else if (error.request) {
-      console.error('Error request:', error.request);
-      throw new Error('No response from server');
-    } else {
-      console.error('Error message:', error.message);
-      throw new Error(error.message);
+      console.error("Error response:", error.response.data);
+      return error.response.data;
     }
   }
 };
@@ -79,19 +69,19 @@ export const updateWarehouse = async (
 
     return response.data;
   } catch (error: any) {
-    if (error.response) {
-      console.error('Error response:', error.response.data);
-      console.log("lỗi:", response.errMessage);
-      throw new Error(error.response.data.detail || 'Unknown error');
-    } else if (error.request) {
-      console.log("lỗi:", response.errMessage);
-      console.error('Error request:', error.request);
-      throw new Error('No response from server');
-    } else {
-      console.log("lỗi:", response.errMessage);
-      console.error('Error message:', error.message);
-      throw new Error(error.message);
-    }
+    // if (error.response) {
+    //   console.error('Error response:', error.response.data);
+    //   console.log("lỗi:", response.errMessage);
+    //   throw new Error(error.response.data.detail || 'Unknown error');
+    // } else if (error.request) {
+    //   console.log("lỗi:", response.errMessage);
+    //   console.error('Error request:', error.request);
+    //   throw new Error('No response from server');
+    // } else {
+    //   console.log("lỗi:", response.errMessage);
+    //   console.error('Error message:', error.message);
+    //   throw new Error(error.message);
+    // }
     
   }
 };

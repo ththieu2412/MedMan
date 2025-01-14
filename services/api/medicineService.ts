@@ -3,6 +3,7 @@ import api from "./apiConfig";
 export const getMedicineList = async (token: string) => {
   try {
     const response = await api.get('/warehouses/medicines/');
+    console.log("response test medicine", response)
     return response.data;
   } catch (error: any) {
     if (error.response) {
