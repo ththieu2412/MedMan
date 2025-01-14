@@ -13,7 +13,6 @@ import { useAuth } from "@/context/AuthContext";
 const Categories = () => {
   const router = useRouter();
   const { user } = useAuth();
-  console.log("Component Cate: ", user);
 
   // Danh sách danh mục gốc
   const allCategories = [

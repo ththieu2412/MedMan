@@ -23,7 +23,6 @@ const SignIn = () => {
   const [userName, setUserName] = useState("ththieu");
   const [password, setPassword] = useState("24122003");
   const [error, setError] = useState<string>("");
-  console.log("sign-in user info: ", user);
 
   const validateLogin = async () => {
     if (userName === "" || password === "") {
