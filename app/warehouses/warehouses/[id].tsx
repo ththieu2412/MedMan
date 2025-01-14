@@ -23,6 +23,7 @@ const WarehouseDetails = () => {
   const token = useToken(); // Lấy token cho API call
   const router = useRouter();
 
+  console.log("ID warehouse: ", id);
   // Hàm lấy dữ liệu chi tiết kho
   const fetchWarehouseDetails = async () => {
     if (!id) return;
@@ -60,7 +61,7 @@ const WarehouseDetails = () => {
       );
       console.log("Cập nhật kho thành công:", updatedWarehouse);
       console.log("Cập nhật kho thành công:", response);
-      console.log("responese cập nhật");
+
       // Sau khi cập nhật thành công, tải lại thông tin kho
       fetchWarehouseDetails(); // Gọi lại hàm để tải lại dữ liệu kho mới từ server
 
@@ -83,8 +84,9 @@ const WarehouseDetails = () => {
           try {
             const response = await deleteWarehouse(token, warehouse.id);
 
-            console.log(response);
-            router.replace("/(tabs)/warehouses"); // Điều hướng về danh sách kho
+            console.log(`Đã xóa kho: ${warehouse.id}`, response.errorMessage);
+            router.replace("/warehouses/warehouses/list"); // Điều hướng về danh sách kho
+
             Alert.alert("Xóa kho thành công!");
           } catch (error) {
             console.error("Xóa kho thất bại:", error);
@@ -163,6 +165,7 @@ const WarehouseDetails = () => {
         <View style={styles.detailContainer}>
           <Text style={styles.label}>Trạng Thái:</Text>
           {isEditing ? (
+
             <View style={styles.switchWrapper}>
               <Switch
                 value={updatedWarehouse.is_active}
@@ -174,6 +177,7 @@ const WarehouseDetails = () => {
                 {updatedWarehouse.is_active ? "Hoạt động" : "Không hoạt động"}
               </Text>
             </View>
+
           ) : (
             <Text style={styles.value}>
               {warehouse.is_active ? "Hoạt động" : "Không hoạt động"}

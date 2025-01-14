@@ -10,5 +10,5 @@
     "image": null,
     "role": "Pharmacist",
     "password": "password789",
-    "isActive": true
+    "is_active": true
 }

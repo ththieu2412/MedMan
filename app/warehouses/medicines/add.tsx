@@ -47,7 +47,7 @@ const AddMedicine = () => {
 
     try {
       // Gọi hàm createMedicine để tạo thuốc mới
-      const response = await createMedicine(token, newMedicine);
+      const response = await createMedicine(newMedicine);
 
       // Hiển thị thông báo thành công
       Alert.alert("Thành công", "Đã thêm thuốc thành công!");
