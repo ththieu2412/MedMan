@@ -1,30 +1,66 @@
-import React from "react";
-import { StyleSheet, Text, View, Image, Alert } from "react-native";
-import MyButton from "@/components/MyButton"; // Đảm bảo đường dẫn đúng với nơi bạn lưu component MyButton
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, View, TextInput, Alert } from "react-native";
+import MyButton from "@/components/MyButton";
 import { router, useRouter } from "expo-router";
-import { useLocalSearchParams, useSearchParams } from "expo-router/build/hooks";
+import { useLocalSearchParams } from "expo-router/build/hooks";
+import { deleteMedicine, detailMedicine, updateMedicine } from "@/services/api";
+import { Medicine } from "@/types";
 
 const MedicineDetails = () => {
   const router = useRouter();
-  const { id } = useLocalSearchParams;
+  const { id } = useLocalSearchParams();
+  const [medicine, setMedicine] = useState<Medicine | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
-  console.log(id);
+  const [medicineName, setMedicineName] = useState("");
+  const [salePrice, setSalePrice] = useState("");
+  const [stockQuantity, setStockQuantity] = useState("");
+  const [unit, setUnit] = useState("");
+
+  const fetchData = async () => {
+    if (!id) return;
+    try {
+      console.log(id);
+      const response = await detailMedicine(Number(id));
+      const medicineData = response.data;
+      setMedicine(medicineData);
+      setMedicineName(medicineData.medicine_name);
+      setSalePrice(medicineData.sale_price.toString());
+      setStockQuantity(medicineData.stock_quantity.toString());
+      setUnit(medicineData.unit);
+    } catch (error: any) {
+      console.error("Error fetching medicine details:", error.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [id]);
 
   const handleUpdate = () => {
-    // Xử lý cập nhật thuốc
-    Alert.alert(
-      "Cập Nhật Thuốc",
-      "Bạn có muốn cập nhật thông tin thuốc này không?",
-      [
-        {
-          text: "Đồng ý",
-          onPress: () => {
-            console.log("Chỉnh sửa");
-          },
-        },
-        { text: "Hủy", style: "cancel" },
-      ]
-    );
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!medicine) return;
+
+    const updatedMedicine = {
+      ...medicine,
+      medicine_name: medicineName,
+      sale_price: parseFloat(salePrice),
+      stock_quantity: parseInt(stockQuantity),
+      unit: unit,
+    };
+
+    try {
+      const response = await updateMedicine(Number(id), updatedMedicine); // Gửi yêu cầu API để cập nhật thuốc
+      setMedicine(response.data);
+      setIsEditing(false);
+      Alert.alert("Cập nhật thành công", "Thông tin thuốc đã được cập nhật.");
+    } catch (error: any) {
+      console.error("Error updating medicine:", error.message);
+      Alert.alert("Lỗi", "Có lỗi xảy ra khi cập nhật thuốc.");
+    }
   };
 
   const handleDelete = () => {
@@ -32,8 +68,8 @@ const MedicineDetails = () => {
     Alert.alert("Xóa Thuốc", "Bạn có chắc chắn muốn xóa thuốc này không?", [
       {
         text: "Xóa",
-        onPress: () => {
-          console.log(`Đã xóa thuốc:`);
+        onPress: async () => {
+          await deleteMedicine(Number(medicine?.id));
           router.replace("/(tabs)/medicines");
         },
       },
@@ -47,32 +83,73 @@ const MedicineDetails = () => {
 
       <View style={styles.detailContainer}>
         <Text style={styles.label}>Mã Thuốc:</Text>
-        <Text style={styles.value}>1223</Text>
+        <Text style={styles.value}>TH{medicine?.id}</Text>
       </View>
 
       <View style={styles.detailContainer}>
         <Text style={styles.label}>Tên Thuốc:</Text>
-        <Text style={styles.value}>A</Text>
+        {isEditing ? (
+          <TextInput
+            style={styles.input}
+            value={medicineName}
+            onChangeText={setMedicineName}
+          />
+        ) : (
+          <Text style={styles.value}>{medicineName}</Text>
+        )}
       </View>
 
       <View style={styles.detailContainer}>
         <Text style={styles.label}>Giá Thuốc:</Text>
-        <Text style={styles.value}>25000 VND</Text>
+        {isEditing ? (
+          <TextInput
+            style={styles.input}
+            value={salePrice}
+            onChangeText={setSalePrice}
+            keyboardType="numeric"
+          />
+        ) : (
+          <Text style={styles.value}>{salePrice} VND</Text>
+        )}
       </View>
 
       <View style={styles.detailContainer}>
-        <Text style={styles.label}>Số Lượng:</Text>
-        <Text style={styles.value}>22</Text>
+        <Text style={styles.label}>Số Lượng Tồn:</Text>
+        {isEditing ? (
+          <TextInput
+            style={styles.input}
+            value={stockQuantity}
+            onChangeText={setStockQuantity}
+            keyboardType="numeric"
+          />
+        ) : (
+          <Text style={styles.value}>{stockQuantity}</Text>
+        )}
       </View>
 
-      {/* {image ? <Image source={{ uri: image }} style={styles.image} /> : null} */}
+      <View style={styles.detailContainer}>
+        <Text style={styles.label}>Đơn Vị:</Text>
+        {isEditing ? (
+          <TextInput style={styles.input} value={unit} onChangeText={setUnit} />
+        ) : (
+          <Text style={styles.value}>{unit}</Text>
+        )}
+      </View>
 
       {/* Nút Cập Nhật */}
-      <MyButton
-        title="Cập Nhật"
-        onPress={handleUpdate}
-        buttonStyle={{ backgroundColor: "#1E88E5", marginTop: 20 }}
-      />
+      {!isEditing ? (
+        <MyButton
+          title="Sửa"
+          onPress={handleUpdate}
+          buttonStyle={{ backgroundColor: "#1E88E5", marginTop: 20 }}
+        />
+      ) : (
+        <MyButton
+          title="Lưu"
+          onPress={handleSave}
+          buttonStyle={{ backgroundColor: "#28a745", marginTop: 20 }}
+        />
+      )}
 
       {/* Nút Xóa */}
       <MyButton
@@ -114,10 +191,12 @@ const styles = StyleSheet.create({
     flex: 2,
     color: "#555",
   },
-  image: {
-    width: 150,
-    height: 150,
-    marginTop: 20,
-    alignSelf: "center",
+  input: {
+    fontSize: 16,
+    flex: 2,
+    color: "#555",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    paddingVertical: 5,
   },
 });

@@ -37,9 +37,21 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        console.error('API error', error);
-        return Promise.reject(error);
+      if (error.response) {
+        // Thông báo lỗi từ server
+        console.error('API Error Response:', error.response.data);
+        return Promise.reject(error.response.data); 
+      } else if (error.request) {
+        // Lỗi yêu cầu không nhận được phản hồi
+        console.error('API Error Request:', error.request);
+        return Promise.reject('Không nhận được phản hồi từ server');
+      } else {
+        // Lỗi khác
+        console.error('API Error Message:', error.message);
+        return Promise.reject(error.message);
+      }
     }
-);
+  );
+  
 
 export default api;

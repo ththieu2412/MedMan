@@ -51,7 +51,6 @@ const MedicineList = () => {
           <Text style={styles.quantity}>
             Stock: {item.stock_quantity} {item.unit}
           </Text>
-          <Text style={styles.name}>{item.id}</Text>
         </View>
       </TouchableOpacity>
     </Link>

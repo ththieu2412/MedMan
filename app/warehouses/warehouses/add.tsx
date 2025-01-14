@@ -19,29 +19,27 @@ const AddWarehouse = () => {
   const token = useToken();
 
   const handleAddWarehouse = async () => {
-  if (!warehouseName || !address) {
-    Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin.");
-    return;
-  }
+    if (!warehouseName || !address) {
+      Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin.");
+      return;
+    }
 
-  try {
-    const payload = {
-      warehouse_name: warehouseName,
-      address: address,
-      is_active: isActive,
-    };
+    try {
+      const payload = {
+        warehouse_name: warehouseName,
+        address: address,
+        is_active: isActive,
+      };
 
-    console.log("Payload gửi lên API:", payload); // Kiểm tra dữ liệu trước khi gửi
-    await createWarehouse(token, payload);
-    // Alert.alert("Thành công", "Đã thêm kho mới.");
-    router.replace("/warehouses/warehouses/list");
-  } catch (error) {
-    console.error("Error adding warehouse:", error);
-    Alert.alert("Lỗi", "Không thể thêm kho mới.");
-  }
-};
-
-
+      console.log("Payload gửi lên API:", payload); // Kiểm tra dữ liệu trước khi gửi
+      await createWarehouse(payload);
+      // Alert.alert("Thành công", "Đã thêm kho mới.");
+      router.replace("/warehouses/warehouses/list");
+    } catch (error) {
+      console.error("Error adding warehouse:", error);
+      Alert.alert("Lỗi", "Không thể thêm kho mới.");
+    }
+  };
 
   return (
     <View style={styles.container}>

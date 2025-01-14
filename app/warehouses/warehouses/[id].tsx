@@ -3,7 +3,11 @@ import { StyleSheet, Text, View, Alert, TextInput, Switch } from "react-native";
 import MyButton from "@/components/MyButton";
 import { useRouter } from "expo-router";
 import { useLocalSearchParams } from "expo-router/build/hooks";
-import { detailWarehouse, updateWarehouse, deleteWarehouse } from "@/services/api/warehouseService"; // Import API service
+import {
+  detailWarehouse,
+  updateWarehouse,
+  deleteWarehouse,
+} from "@/services/api/warehouseService"; // Import API service
 import { useToken } from "@/hooks/useToken"; // Hook để lấy token
 
 const WarehouseDetails = () => {
@@ -13,12 +17,13 @@ const WarehouseDetails = () => {
   const [isEditing, setIsEditing] = useState<boolean>(false); // Trạng thái form chỉnh sửa
   const [updatedWarehouse, setUpdatedWarehouse] = useState<any>({
     address: "", // Khởi tạo address rỗng
-    is_active: false,    // Khởi tạo is_active là false
+    is_active: false, // Khởi tạo is_active là false
   }); // Lưu thông tin kho đã thay đổi
   const { id } = useLocalSearchParams(); // Lấy id từ URL
   const token = useToken(); // Lấy token cho API call
   const router = useRouter();
 
+  console.log("ID warehouse: ", id);
   // Hàm lấy dữ liệu chi tiết kho
   const fetchWarehouseDetails = async () => {
     if (!id) return;
@@ -45,25 +50,28 @@ const WarehouseDetails = () => {
 
   // Xử lý cập nhật kho
   const handleUpdate = async () => {
-  if (!updatedWarehouse) return;
-  console.log("Cập nhật kho:", updatedWarehouse);
-  try {
-    // Gọi API cập nhật kho
-    const response = await updateWarehouse(token, warehouse.id, updatedWarehouse);
-    console.log("Cập nhật kho thành công:", updatedWarehouse);
-    console.log("Cập nhật kho thành công:", response);
-    
-    // Sau khi cập nhật thành công, tải lại thông tin kho
-    fetchWarehouseDetails(); // Gọi lại hàm để tải lại dữ liệu kho mới từ server
+    if (!updatedWarehouse) return;
+    console.log("Cập nhật kho:", updatedWarehouse);
+    try {
+      // Gọi API cập nhật kho
+      const response = await updateWarehouse(
+        token,
+        warehouse.id,
+        updatedWarehouse
+      );
+      console.log("Cập nhật kho thành công:", updatedWarehouse);
+      console.log("Cập nhật kho thành công:", response);
 
-    Alert.alert("Cập nhật kho thành công!");
-    setIsEditing(false); // Tắt chế độ chỉnh sửa
-  } catch (error) {
-    console.error("Cập nhật kho thất bại:", error);
-    Alert.alert("Cập nhật kho thất bại. Vui lòng thử lại.");
-  }
-};
+      // Sau khi cập nhật thành công, tải lại thông tin kho
+      fetchWarehouseDetails(); // Gọi lại hàm để tải lại dữ liệu kho mới từ server
 
+      Alert.alert("Cập nhật kho thành công!");
+      setIsEditing(false); // Tắt chế độ chỉnh sửa
+    } catch (error) {
+      console.error("Cập nhật kho thất bại:", error);
+      Alert.alert("Cập nhật kho thất bại. Vui lòng thử lại.");
+    }
+  };
 
   // Xử lý xóa kho
   const handleDelete = async () => {
@@ -76,7 +84,7 @@ const WarehouseDetails = () => {
           try {
             const response = await deleteWarehouse(token, warehouse.id);
             console.log(`Đã xóa kho: ${warehouse.id}`, response.errorMessage);
-            router.replace("/(tabs)/warehouses"); // Điều hướng về danh sách kho
+            router.replace("/warehouses/warehouses/list"); // Điều hướng về danh sách kho
             Alert.alert("Xóa kho thành công!");
           } catch (error) {
             console.error("Xóa kho thất bại:", error);
@@ -123,8 +131,12 @@ const WarehouseDetails = () => {
             <TextInput
               style={styles.input}
               value={updatedWarehouse.warehouse_name} // Dùng updatedWarehouse.warehouse_name
-              onChangeText={(text) =>
-                setUpdatedWarehouse({ ...updatedWarehouse, warehouse_name: text }) // Cập nhật giá trị
+              onChangeText={
+                (text) =>
+                  setUpdatedWarehouse({
+                    ...updatedWarehouse,
+                    warehouse_name: text,
+                  }) // Cập nhật giá trị
               }
             />
           ) : (
@@ -138,8 +150,9 @@ const WarehouseDetails = () => {
             <TextInput
               style={styles.input}
               value={updatedWarehouse.address} // Dùng updatedWarehouse.address
-              onChangeText={(text) =>
-                setUpdatedWarehouse({ ...updatedWarehouse, address: text }) // Cập nhật giá trị
+              onChangeText={
+                (text) =>
+                  setUpdatedWarehouse({ ...updatedWarehouse, address: text }) // Cập nhật giá trị
               }
             />
           ) : (
@@ -152,12 +165,15 @@ const WarehouseDetails = () => {
           {isEditing ? (
             <Switch
               value={updatedWarehouse.is_active} // Dùng updatedWarehouse.is_active
-              onValueChange={(value) =>
-                setUpdatedWarehouse({ ...updatedWarehouse, is_active: value }) // Cập nhật giá trị
+              onValueChange={
+                (value) =>
+                  setUpdatedWarehouse({ ...updatedWarehouse, is_active: value }) // Cập nhật giá trị
               }
             />
           ) : (
-            <Text style={styles.value}>{warehouse.is_active ? "Hoạt động" : "Không hoạt động"}</Text>
+            <Text style={styles.value}>
+              {warehouse.is_active ? "Hoạt động" : "Không hoạt động"}
+            </Text>
           )}
         </View>
 

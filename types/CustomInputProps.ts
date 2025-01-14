@@ -4,4 +4,5 @@ export type CustomInputProps = {
     placeholder: string,
     type: string,
     onChangeText?: (text: string) => void;
+    text: string;
 }

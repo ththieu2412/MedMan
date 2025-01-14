@@ -20,22 +20,17 @@ export const getWarehouseList = async (token: string) => {
 };
 
 export const createWarehouse = async (token: string, warehouseData: Warehouse) => {
-  const response = null;
+  
   try {
     console.log( "warehouseData", warehouseData);
-    response = await api.post('/warehouses/warehouses/', warehouseData );
-    
+    const response = await api.post('/warehouses/warehouses/', warehouseData );
+    console.log("Respone quản lý kho: ", response)
     return response;
   } catch (error: any) {
     if (error.response) {
-      console.error('Error response:', response.errorMessage);
-      throw new Error(error.response.data.detail || 'Unknown error');
-    } else if (error.request) {
-      console.error('Error request:', error.request);
-      throw new Error('No response from server');
-    } else {
-      console.error('Error message:', error.message);
-      throw new Error(error.message);
+      console.error('Error response:', error.response);
+      return error.response
+     
     }
   }
 };
