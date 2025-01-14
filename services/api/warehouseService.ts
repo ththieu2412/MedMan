@@ -20,7 +20,7 @@ export const createWarehouse = async (token: string, warehouseData: Warehouse) =
 
   try {
     console.log( "warehouseData", warehouseData);
-    const const response = await api.post('/warehouses/warehouses/', warehouseData );
+    const response = await api.post('/warehouses/warehouses/', warehouseData );
     console.log("Respone quản lý kho: ", response)
     return response.data;
   } catch (error: any) {
@@ -89,9 +89,8 @@ export const updateWarehouse = async (
 };
 
 export const deleteWarehouse = async (token: string, warehouseId: number) => {
-  const response = null;
   try {
-    response = await api.delete(`/warehouses/warehouses/${warehouseId}/`);
+    const response = await api.delete(`/warehouses/warehouses/${warehouseId}/`);
     console.log(`Đã xóa kho: ${warehouseId}`, response);
 
     
