@@ -28,9 +28,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         const storedUser = await AsyncStorage.getItem("user");
         if (storedUser) {
           setUserState(JSON.parse(storedUser));
-          router.push("/(tabs)");
+          router.replace("/(tabs)");
         } else {
-          console.warn("No user found in AsyncStorage.");
+          console.log("Người dùng chưa đăng nhập");
         }
       } catch (error) {
         console.warn("Error loading user from AsyncStorage:", error);
