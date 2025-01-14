@@ -1,232 +1,128 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  FlatList,
   View,
   Text,
-  FlatList,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
-  Alert,
+  Button,
 } from "react-native";
-import {
-  getWarehouseListsapi,
-  addWarehouseapi,
-  updateWarehouseapi,
-  deleteWarehouseapi,
-} from "@/services/apiServices";
-import { Warehouse, ApiResponse } from "@/constants/types";
-import AddWarehouse from "./add";
-import WarehouseDetail from "./[id]";
+import { Link, useRouter } from "expo-router";
+import { getWarehouseList } from "@/services/api/warehouseService"; // API call để lấy danh sách nhà kho
+import { useToken } from "@/hooks/useToken"; // Hook để lấy token
+import { Warehouse } from "@/types"; // Định nghĩa kiểu Warehouse
+import { useFocusEffect } from "@react-navigation/native"; // Import useFocusEffect
 
-const ListWarehouse: React.FC = () => {
-  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(
-    null
-  );
+const WarehouseList = () => {
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]); // Khởi tạo state để chứa dữ liệu nhà kho
+  const router = useRouter();
+  const token = useToken();
 
+  // Hàm lấy danh sách nhà kho
+  const fetchData = async () => {
+    try {
+      const data = await getWarehouseList(token);
+      setWarehouses(data.data); // Gán dữ liệu vào state
+    } catch (error: any) {
+      console.error("Error fetching warehouse list:", error.message);
+    }
+  };
+
+  // Gọi fetchData khi component được mount
   useEffect(() => {
-    fetchWarehouses();
+    fetchData();
   }, []);
 
-  const fetchWarehouses = async () => {
-    setLoading(true);
-    try {
-      const response: ApiResponse<Warehouse[]> = await getWarehouseListsapi();
-      if (response.statuscode === 200 && response.status === "success") {
-        setWarehouses(response.data);
-      } else {
-        Alert.alert(
-          "Lỗi",
-          response.errorMessage || "Không thể tải danh sách kho."
-        );
-      }
-    } catch (error: any) {
-      Alert.alert("Lỗi", error.message || "Có lỗi xảy ra khi lấy dữ liệu");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-const handleAddWarehouse = async (newWarehouse: Warehouse) => {
-  try {
-    const response: ApiResponse<null> = await addWarehouseapi(newWarehouse);
-    if (response.statuscode === 200 && response.status === "success") {
-      // Thêm kho mới vào danh sách mà không cần gọi lại API
-      setWarehouses((prev) => [...prev, { ...newWarehouse }]); // Đảm bảo thêm kho mới vào mảng hiện tại
-      setShowAddModal(false); // Đóng modal sau khi thêm kho
-      Alert.alert("Thành công", "Kho mới đã được thêm.");
-    } else {
-      throw new Error(response.errorMessage || "Không thể thêm kho mới");
-    }
-  } catch (error: any) {
-    Alert.alert("Lỗi", error.message);
-  }
-};
-
-
-
-
-
-
-
-  const handleUpdateWarehouse = async (updatedWarehouse: Warehouse) => {
-    try {
-      const response: ApiResponse<null> = await updateWarehouseapi(
-        updatedWarehouse.id.toString(),
-        updatedWarehouse
-      );
-      if (response.statuscode === 200 && response.status === "success") {
-        setWarehouses((prev) =>
-          prev.map((warehouse) =>
-            warehouse.id === updatedWarehouse.id ? updatedWarehouse : warehouse
-          )
-        );
-      } else {
-        throw new Error(response.errorMessage || "Không thể cập nhật kho");
-      }
-    } catch (error: any) {
-      Alert.alert("Lỗi", error.message);
-    }
-  };
-
-const handleDeleteWarehouse = async () => {
-  if (!selectedWarehouse) return;
-
-  Alert.alert(
-    "Xác nhận xóa",
-    `Bạn có chắc chắn muốn xóa kho "${selectedWarehouse.warehouse_name}"?`,
-    [
-      {
-        text: "Hủy",
-        style: "cancel",
-      },
-      {
-        text: "Xóa",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            const response: ApiResponse<null> = await deleteWarehouseapi(
-              selectedWarehouse.id.toString()
-            );
-            if (response.statuscode === 200 && response.status === "success") {
-              setWarehouses((prev) =>
-                prev.filter((warehouse) => warehouse.id !== selectedWarehouse.id)
-              );
-              setShowDetailModal(false); // Đóng modal chi tiết sau khi xóa
-              Alert.alert("Thành công", "Đã xóa kho thành công.");
-            } else {
-              throw new Error(response.errorMessage || "Không thể xóa kho.");
-            }
-          } catch (error: any) {
-            Alert.alert("Lỗi", error.message);
-          }
-        },
-      },
-    ]
+  // Sử dụng useFocusEffect để gọi lại fetchData khi màn hình được focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData(); // Fetch lại dữ liệu mỗi khi màn hình được focus
+    }, [])
   );
-};
 
-
+  // Render mỗi item trong danh sách
+  const renderItem = ({ item }: { item: Warehouse }) => (
+    <Link href={`/warehouses/warehouses/${item.id}`} asChild>
+      <TouchableOpacity style={styles.card}>
+        {/* Hiển thị thông tin nhà kho */}
+        <View style={styles.info}>
+          <Text style={styles.name}>Tên kho: {item.warehouse_name}</Text>
+          <Text style={styles.price}>Địa chỉ: {item.address}</Text>
+          <Text style={styles.quantity}>
+            Trạng thái: {item.is_active ? "Hoạt động" : "Không hoạt động"}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </Link>
+  );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Danh sách nhà kho</Text>
-      {loading ? (
-        <ActivityIndicator size="large" color="#007bff" />
-      ) : (
-        <FlatList
-  data={warehouses}
-  keyExtractor={(item) => item.id.toString()}
-  renderItem={({ item }) => (
-    <TouchableOpacity
-      onPress={() => {
-        setSelectedWarehouse(item);
-        setShowDetailModal(true);
-      }}
-      style={styles.listItem}
-    >
-      <Text style={styles.itemText}>{item.warehouse_name}</Text>
-    </TouchableOpacity>
-  )}
-/>
-
-      )}
+    <View style={{ flex: 1 }}>
+      {/* Nút Thêm Kho */}
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => setShowAddModal(true)}
+        onPress={() => router.push("warehouses/warehouses/add")}
       >
-        <Text style={styles.addButtonText}>+</Text>
+        <Text style={styles.addButtonText}>+ Thêm Kho</Text>
       </TouchableOpacity>
-      <AddWarehouse
-        visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onAdd={handleAddWarehouse}
+
+      {/* Danh sách nhà kho */}
+      <FlatList
+        data={warehouses} // Sử dụng dữ liệu từ state
+        keyExtractor={(item) => item.id.toString()} // Sử dụng id của nhà kho làm key
+        renderItem={renderItem} // Hàm render mỗi item
+        contentContainerStyle={styles.container} // Style cho nội dung FlatList
       />
-      <WarehouseDetail
-        visible={showDetailModal}
-        warehouse={selectedWarehouse}
-        onClose={() => setShowDetailModal(false)}
-        onUpdate={handleUpdateWarehouse}
-        onDelete={handleDeleteWarehouse}
-      />
-      
     </View>
   );
 };
 
+// Styles cho giao diện
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#f9f9f9",
+    padding: 10,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  listItem: {
-    padding: 16,
-    backgroundColor: "#ffffff",
-    marginBottom: 8,
-    borderRadius: 5,
+  card: {
+    flexDirection: "column",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    marginBottom: 15,
+    padding: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
-    elevation: 3,
+    width: "100%",
   },
-  itemText: {
+  info: {
+    paddingHorizontal: 10,
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  price: {
     fontSize: 16,
     color: "#333",
+    marginBottom: 5,
+  },
+  quantity: {
+    fontSize: 14,
+    color: "#666",
   },
   addButton: {
-    position: "absolute",
-    bottom: 16,
-    right: 16,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#007bff",
-    justifyContent: "center",
+    backgroundColor: "#1E88E5",
+    padding: 10,
+    borderRadius: 10,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    margin: 10,
   },
   addButtonText: {
     color: "#fff",
-    fontSize: 28,
-    lineHeight: 28,
-    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 
-export default ListWarehouse;
+export default WarehouseList;
