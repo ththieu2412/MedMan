@@ -2,7 +2,10 @@ import api from "./apiConfig";
 
 export const login = async (username: string, password: string) => {
     try {
+      console.log('Username test' ,username)
+      console.log('Password test' ,password)
       const response = await api.post('/accounts/accounts/login/', { username, password });
+      console.log('Data', response.data)
       return response.data;
     } catch (error: any) {
       // Xử lý lỗi tại đây
