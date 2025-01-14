@@ -3,144 +3,95 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
-  Modal,
+  TouchableOpacity,
   Alert,
 } from "react-native";
-import { Warehouse } from "@/constants/types";
+import { useRouter } from "expo-router";
+import { createWarehouse } from "@/services/api/warehouseService"; // API call để thêm kho
+import { useToken } from "@/hooks/useToken"; // Hook để lấy token
 
-interface AddWarehouseModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onAdd: (warehouse: Warehouse) => void;
-}
+const AddWarehouse = () => {
+  const [warehouseName, setWarehouseName] = useState("");
+  const [address, setAddress] = useState("");
+  const [isActive, setIsActive] = useState(true);
+  const router = useRouter();
+  const token = useToken();
 
-const AddWarehouse: React.FC<AddWarehouseModalProps> = ({
-  visible,
-  onClose,
-  onAdd,
-}) => {
-  const [newWarehouse, setNewWarehouse] = useState<Warehouse>({
-    id: 0,
-    warehouse_name: "",
-    address: "",
-    is_active: true,
-  });
+  const handleAddWarehouse = async () => {
+  if (!warehouseName || !address) {
+    Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin.");
+    return;
+  }
 
-  const handleAdd = () => {
-    if (!newWarehouse.warehouse_name || !newWarehouse.address) {
-      Alert.alert("Lỗi", "Vui lòng nhập đủ thông tin");
-      return;
-    }
-    onAdd(newWarehouse);
-    setNewWarehouse({
-      id: 0,
-      warehouse_name: "",
-      address: "",
-      is_active: true,
-    });
-    onClose();
-  };
+  try {
+    const payload = {
+      warehouse_name: warehouseName,
+      address: address,
+      is_active: isActive,
+    };
+
+    console.log("Payload gửi lên API:", payload); // Kiểm tra dữ liệu trước khi gửi
+    await createWarehouse(token, payload);
+    // Alert.alert("Thành công", "Đã thêm kho mới.");
+    router.replace("/warehouses/warehouses/list");
+  } catch (error) {
+    console.error("Error adding warehouse:", error);
+    Alert.alert("Lỗi", "Không thể thêm kho mới.");
+  }
+};
+
+
 
   return (
-    <Modal visible={visible} animationType="fade" onRequestClose={onClose}>
-      <View style={styles.modalContainer}>
-        <Text style={styles.modalTitle}>Thêm kho mới</Text>
-        <TextInput
-          style={styles.input}
-          value={newWarehouse.warehouse_name}
-          onChangeText={(text) =>
-            setNewWarehouse({ ...newWarehouse, warehouse_name: text })
-          }
-          placeholder="Tên kho"
-        />
-        <TextInput
-          style={styles.input}
-          value={newWarehouse.address}
-          onChangeText={(text) =>
-            setNewWarehouse({ ...newWarehouse, address: text })
-          }
-          placeholder="Địa chỉ"
-        />
-        <View style={styles.row}>
-          <Text>Trạng thái: </Text>
-          <TouchableOpacity
-            onPress={() =>
-              setNewWarehouse({
-                ...newWarehouse,
-                is_active: !newWarehouse.is_active,
-              })
-            }
-          >
-            <Text style={styles.toggleText}>
-              {newWarehouse.is_active ? "✅ Hoạt động" : "❌ Ngừng hoạt động"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
-          <Text style={styles.addButtonText}>Thêm</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text style={styles.closeButtonText}>Đóng</Text>
-        </TouchableOpacity>
-      </View>
-    </Modal>
+    <View style={styles.container}>
+      <Text style={styles.title}>Thêm Kho Mới</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Tên Kho"
+        value={warehouseName}
+        onChangeText={setWarehouseName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Địa Chỉ"
+        value={address}
+        onChangeText={setAddress}
+      />
+      <TouchableOpacity style={styles.button} onPress={handleAddWarehouse}>
+        <Text style={styles.buttonText}>Thêm Kho</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
+  container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "white",
     padding: 20,
-    borderRadius: 10,
   },
-  modalTitle: {
+  title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 10,
-  },
-  input: {
-    width: 300,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    marginVertical: 10,
-    borderRadius: 5,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
     marginBottom: 20,
   },
-  toggleText: {
-    fontSize: 16,
-    color: "#007bff",
-    marginLeft: 10,
-  },
-  addButton: {
-    backgroundColor: "#007bff",
-    padding: 10,
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
     borderRadius: 5,
-  },
-  addButtonText: {
-    color: "white",
-    fontSize: 16,
-    textAlign: "center",
-  },
-  closeButton: {
-    backgroundColor: "#6c757d",
     padding: 10,
-    marginTop: 10,
-    borderRadius: 5,
+    marginBottom: 15,
   },
-  closeButtonText: {
-    color: "white",
+  button: {
+    backgroundColor: "#1E88E5",
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
     fontSize: 16,
-    textAlign: "center",
+    fontWeight: "bold",
   },
 });
 
