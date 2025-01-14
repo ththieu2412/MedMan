@@ -27,7 +27,6 @@ export const createWarehouse = async (token: string, warehouseData: Warehouse) =
     if (error.response) {
       console.error("Error response:", error.response.data);
       return error.response.data;
-
     }
   }
 };

@@ -61,6 +61,7 @@ const WarehouseDetails = () => {
       );
       console.log("Cập nhật kho thành công:", updatedWarehouse);
       console.log("Cập nhật kho thành công:", response);
+
       // Sau khi cập nhật thành công, tải lại thông tin kho
       fetchWarehouseDetails(); // Gọi lại hàm để tải lại dữ liệu kho mới từ server
 
@@ -164,6 +165,7 @@ const WarehouseDetails = () => {
         <View style={styles.detailContainer}>
           <Text style={styles.label}>Trạng Thái:</Text>
           {isEditing ? (
+
             <View style={styles.switchWrapper}>
               <Switch
                 value={updatedWarehouse.is_active}
@@ -175,6 +177,7 @@ const WarehouseDetails = () => {
                 {updatedWarehouse.is_active ? "Hoạt động" : "Không hoạt động"}
               </Text>
             </View>
+
           ) : (
             <Text style={styles.value}>
               {warehouse.is_active ? "Hoạt động" : "Không hoạt động"}
