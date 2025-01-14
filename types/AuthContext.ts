@@ -1,3 +1,5 @@
+import { isLoading } from "expo-font";
+
 export interface User {
     token: string;
     username: string;
@@ -12,4 +14,6 @@ export interface AuthContextType {
     logout: () => Promise<void>;
     isLoggedIn: () => boolean; 
     getToken: () => string | null;
+    login: (username: string, password: string) => Promise<{ data: any; error: string | null }>;
+    isLoading: boolean;
 }

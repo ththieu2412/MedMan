@@ -13,23 +13,25 @@ import { useRouter } from "expo-router";
 import MyButton from "@/components/MyButton";
 import FormField from "@/components/FormField";
 import { useAuth } from "@/context/AuthContext";
-import { login } from "@/services/api";
+import Spinner from "react-native-loading-spinner-overlay";
+// import { login } from "@/services/api";
 
 const SignIn = () => {
   const router = useRouter();
-  const { setUser } = useAuth();
+  const { setUser, user, login, isLoading } = useAuth();
+
   const [userName, setUserName] = useState("ththieu");
   const [password, setPassword] = useState("24122003");
   const [error, setError] = useState<string>("");
+  console.log("sign-in user info: ", user);
 
   const validateLogin = async () => {
     if (userName === "" || password === "") {
       setError("Please enter both username and password");
     } else {
       try {
-        console.log(userName);
-        console.log(password);
         const response = await login(userName, password);
+        console.log("sign-in response: ", response);
         if (response && response.token) {
           setUser({
             token: response.token,
@@ -63,6 +65,7 @@ const SignIn = () => {
         contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
         keyboardShouldPersistTaps="handled"
       >
+        <Spinner visible={isLoading} />
         <View style={styles.container}>
           <Image
             source={require("@/assets/images/login.png")}
