@@ -23,8 +23,12 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { format } from "date-fns";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import * as ImagePicker from "expo-image-picker";
+import { useAuth } from "@/context/AuthContext";
+import { employeeDetail } from "@/services/api";
 export default function SettingScreen() {
   const [image, setImage] = useState(null);
+  const router = useRouter();
+  const { logout, user } = useAuth();
 
   const [gender, setGender] = useState("Nam");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -35,30 +39,21 @@ export default function SettingScreen() {
   const [password, setPassword] = useState("");
   const [isEdited, setIsEdited] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
-    const hasChanges =
-      dateOfBirth || cccd || address || phoneNumber || email || password;
-    setIsEdited(hasChanges);
+    const fetchData = async () => {
+      try {
+        const response = await employeeDetail(1);
+        console.log("Setting response: ", response);
+        const hasChanges =
+          dateOfBirth || cccd || address || phoneNumber || email || password;
+        setIsEdited(hasChanges);
+      } catch (error) {
+        console.error("Error fetching employee details:", error);
+      }
+    };
+    fetchData();
   }, [dateOfBirth, cccd, address, phoneNumber, email, password]);
-
-  // Hàm xử lý logout
-  const logout = () => {
-    Alert.alert("Xác nhận", "Bạn có chắc muốn đăng xuất?", [
-      {
-        text: "Đồng ý",
-        onPress: () => {
-          console.log("User logged out");
-          router.replace("/sign-in");
-        },
-      },
-      {
-        text: "Hủy",
-        style: "cancel",
-      },
-    ]);
-  };
 
   // Hàm xử lý khi nhấn nút sửa thông tin
   const handleEdit = () => {

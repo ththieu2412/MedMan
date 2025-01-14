@@ -20,7 +20,7 @@ export const getMedicineList = async (token: string) => {
 
 export const createMedicine = async (token: string, medicineData: object) => {
   try {
-    const response = await api.post('/warehouses/medicines/');
+    const response = await api.post('/warehouses/medicines/', medicineData);
     return response.data;
   } catch (error: any) {
     if (error.response) {

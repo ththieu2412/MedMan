@@ -8,11 +8,15 @@ import {
 } from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
 
 const Categories = () => {
   const router = useRouter();
+  const { user } = useAuth();
+  console.log("Component Cate: ", user);
 
-  const categoriesList = [
+  // Danh sách danh mục gốc
+  const allCategories = [
     {
       name: "Staff",
       id: 1,
@@ -64,6 +68,25 @@ const Categories = () => {
       image: require("@/assets/images/categories/report.png"),
     },
   ];
+
+  const categoriesList = allCategories.filter((category) => {
+    if (user?.role.toLowerCase() === "admin") {
+      return true; // Admin thấy tất cả
+    }
+
+    if (user?.role.toLowerCase() === "doctor") {
+      return ["Patient", "Medicine", "Prescription"].includes(category.name);
+    }
+
+    if (user?.role.toLowerCase() === "pharmacist") {
+      return ["Patient", "Medicine", "Export"].includes(category.name);
+    }
+
+    if (user?.role === "staff") {
+      return ["Patient", "Medicine", "Export"].includes(category.name);
+    }
+    return false; // Mặc định không cho phép các role khác
+  });
 
   const handleCategoryPress = (categoryName: string) => {
     console.log(`Selected category: ${categoryName}`);
