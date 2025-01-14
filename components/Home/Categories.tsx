@@ -83,7 +83,9 @@ const Categories = () => {
     }
 
     if (user?.role === "staff") {
-      return ["Patient", "Medicine", "Import", "Warehouse"].includes(category.name);
+      return ["Patient", "Medicine", "Import", "Warehouse"].includes(
+        category.name
+      );
     }
     return false; // Mặc định không cho phép các role khác
   });

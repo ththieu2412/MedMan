@@ -23,7 +23,7 @@ const MedicineList = () => {
   const token = useToken();
   const fetchData = async () => {
     try {
-      const data = await getMedicineList(token);
+      const data = await getMedicineList();
       setMedicines(data.data); // Gán dữ liệu vào state
     } catch (error: any) {
       console.error("Error fetching medicine list:", error.message);
