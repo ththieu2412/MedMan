@@ -16,6 +16,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [user, setUserState] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // 🧩 Load user từ AsyncStorage khi app khởi động
   useEffect(() => {
