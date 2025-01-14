@@ -39,6 +39,7 @@ export const createIRD = async (token: string, IRDData: object) => {
 export const detailbyIRId = async (token: string, IRId: number) => {
   try {
     const response = await api.get(`/warehouses/import-receipt-details-by-id/${IRId}/`);
+    console.log("response.data:", response.data);
     return response.data;
   } catch (error: any) {
     if (error.response) {
