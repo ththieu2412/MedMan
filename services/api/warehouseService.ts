@@ -5,13 +5,57 @@ export const getWarehouseList = async (token: string) => {
   try {
     const response = await api.get('/warehouses/warehouse-list/');
     console.log("response tesst ", response);
-    return response.data;
+    return {sucess:true,data:response.data};
   } catch (error: any) {
-   
-    // return response.data
+   if (error.errorMessage){
+      return error.errorMessage;
+   }
+      
+    
+  }
+};
+// hàm tìm kiếm kho
+export const searchWarehouses = async (
+  token: string,
+  address: string,
+  isActive: string
+) => {
+  try {
+    // Khởi tạo đối tượng URLSearchParams để xây dựng query string
+    const params = new URLSearchParams();
+
+    // Chỉ thêm tham số vào query nếu nó có giá trị
+    if (address) {
+      params.append("address", address);
+    }
+    if (isActive) {
+      params.append("is_active", isActive);
+    }
+
+    // Tạo URL tìm kiếm với các tham số query đã được thêm
+    const url = `/warehouses/warehouses/search/?${params.toString()}`;
+
+    // Gửi yêu cầu GET với token trong header Authorization
+    const response = await api.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // Log response để kiểm tra (có thể xóa sau khi hoàn thành)
+    console.log("Response from API:", response);
+
+    // Trả về dữ liệu nhận được từ API
+    return response.data.data;  // Giả sử API trả về data trong trường `data`
+  } catch (error: any) {
+    // Nếu có lỗi từ phản hồi, log và trả về lỗi
     if (error.response) {
       console.error("Error response:", error.response.data);
-      return error.response.data;
+      return error.response.data;  // Trả về thông tin lỗi từ server
+    } else {
+      // Nếu không có phản hồi từ server, log và trả về lỗi chung
+      console.error("Error:", error.message);
+      return { errorMessage: error.message };
     }
   }
 };

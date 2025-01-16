@@ -3,7 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from "@/context/AuthContext"; // Import useAuth từ AuthContext của bạn
 
 
+
+// const BASE_URL = 'http://192.168.1.32:8000/api';
+
 const BASE_URL = 'http://192.168.1.37:8000/api';
+
 
 
 // 🌐 Thiết lập URL gốc của API
