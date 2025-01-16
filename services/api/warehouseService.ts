@@ -60,18 +60,19 @@ export const searchWarehouses = async (
   }
 };
 
-export const createWarehouse = async (token: string, warehouseData: Warehouse) => {
+export const createWarehouse = async (warehouseData: Warehouse) => {
 
   try {
     console.log( "warehouseData", warehouseData);
     const response = await api.post('/warehouses/warehouses/', warehouseData );
     console.log("Respone quản lý kho: ", response)
-    return response.data;
+    return { success: true, data: response.data};
   } catch (error: any) {
-    if (error.response) {
-      console.error("Error response:", error.response.data);
-      return error.response.data;
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };
 
