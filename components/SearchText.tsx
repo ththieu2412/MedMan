@@ -1,16 +1,26 @@
-import { StyleSheet, TextInput, View, ViewStyle } from 'react-native';
-import React, { useState } from 'react';
-import { FontAwesome } from '@expo/vector-icons';
+import { StyleSheet, TextInput, View, ViewStyle } from "react-native";
+import React, { useState } from "react";
+import { FontAwesome } from "@expo/vector-icons";
 
 type SearchTextProps = {
   placeholder: string;
   setSearchText: (text: string) => void;
-  style?: ViewStyle; // Thêm prop style tùy chọn
+  style?: ViewStyle;
 };
 
-const SearchText: React.FC<SearchTextProps> = ({ placeholder, setSearchText, style }) => {
+const SearchText: React.FC<SearchTextProps> = ({
+  placeholder,
+  setSearchText,
+  style,
+}) => {
   const [isFocused, setIsFocused] = useState(false);
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState("");
+
+  // Gọi hàm setSearchText mỗi khi người dùng nhập
+  const handleChangeText = (value: string) => {
+    setSearchInput(value);
+    setSearchText(value); // Gọi hàm truyền từ component cha
+  };
 
   return (
     <View style={StyleSheet.flatten([styles.container, style])}>
@@ -26,8 +36,7 @@ const SearchText: React.FC<SearchTextProps> = ({ placeholder, setSearchText, sty
           style={styles.input}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          onChangeText={(value) => setSearchInput(value)}
-          onSubmitEditing={() => setSearchText(searchInput)}
+          onChangeText={handleChangeText}
           value={searchInput}
         />
       </View>
@@ -42,29 +51,29 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   inputWrapper: {
-    position: 'relative',
-    borderColor: '#cccccc',
+    position: "relative",
+    borderColor: "#cccccc",
     borderWidth: 1,
     height: 48,
     paddingHorizontal: 16,
     borderRadius: 25,
-    backgroundColor: '#ffffff',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+    backgroundColor: "#ffffff",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
   },
   icon: {
-    position: 'absolute',
+    position: "absolute",
     left: 16,
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#333333',
+    color: "#333333",
     paddingLeft: 40,
   },
   focusedInput: {
-    borderColor: '#66CCFF',
+    borderColor: "#66CCFF",
     borderWidth: 2,
   },
 });

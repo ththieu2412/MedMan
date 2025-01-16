@@ -1,14 +1,24 @@
-import { StyleSheet, Text, View, FlatList, Image, Animated, Modal, TouchableOpacity } from 'react-native'; 
-import React, { useEffect, useState } from 'react';
-import { Employee } from '@/types';
-import MyButton from '@/components/MyButton';
-import SearchText from '@/components/SearchText';
-import { Link, useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
-import { formatDate } from '@/utils/formatDate';
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  Image,
+  Animated,
+  Modal,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import { Employee } from "@/types";
+import MyButton from "@/components/MyButton";
+import SearchText from "@/components/SearchText";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
+import { formatDate } from "@/utils/formatDate";
+import { getEmployees } from "@/services/api";
 
-
-const data: Employee[] = require('@/data/employees.json');
+const data: Employee[] = require("@/data/employees.json");
 
 const ListEmployees = () => {
   const { role } = useLocalSearchParams();
@@ -17,7 +27,54 @@ const ListEmployees = () => {
   const [selectedRole, setSelectedRole] = useState(role); // Trạng thái vai trò được chọn
   const [filteredData, setFilteredData] = useState<Employee[]>(data); // Dữ liệu đã lọc
   const [modalVisible, setModalVisible] = useState(false); // Modal lọc
+  const [employees, setEmployees] = useState<Employee[] | null>(null);
+  const [searchText, setSearchText] = useState("");
 
+  const handleError = (error: any) => {
+    const errorMessage =
+      error?.errorMessage ||
+      error?.message ||
+      "Đã xảy ra lỗi. Vui lòng thử lại!";
+    Alert.alert("Lỗi", errorMessage);
+  };
+
+  // Hàm gọi API lấy danh sách nhân viên
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const result = await getEmployees();
+        if (result.success) {
+          setEmployees(result.data);
+        } else {
+          handleError(result);
+        }
+      } catch (error) {
+        handleError(error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (employees && employees.length > 0) {
+      // Loại bỏ khoảng trắng thừa và chuyển về chữ thường để so sánh
+      const sanitizedRole = selectedRole.trim().toLowerCase();
+
+      // Lọc theo role
+      const filteredByRole = employees.filter(
+        (employee) => employee.role === sanitizedRole
+      );
+
+      // Lọc thêm theo tên nếu có searchText
+      const filteredBySearch = filteredByRole.filter((employee) =>
+        employee.full_name.toLowerCase().includes(searchText.toLowerCase())
+      );
+
+      // Cập nhật dữ liệu sau khi lọc
+      setFilteredData(filteredBySearch);
+    }
+  }, [selectedRole, searchText, employees]);
   // Hiệu ứng mờ
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -36,21 +93,21 @@ const ListEmployees = () => {
   // Hàm lấy tiêu đề theo vai trò
   const getHeaderTitle = () => {
     switch (selectedRole) {
-      case 'Doctor':
-        return 'DANH SÁCH BÁC SĨ';
-      case 'Pharmacist':
-        return 'DANH SÁCH DƯỢC SĨ';
-      case 'Staff':
-        return 'DANH SÁCH NHÂN VIÊN';
+      case "Doctor":
+        return "DANH SÁCH BÁC SĨ";
+      case "Pharmacist":
+        return "DANH SÁCH DƯỢC SĨ";
+      case "Staff":
+        return "DANH SÁCH NHÂN VIÊN";
       default:
-        return 'DANH SÁCH NHÂN VIÊN';
+        return "DANH SÁCH NHÂN VIÊN";
     }
   };
 
   const handleAdd = () => {
     console.log("Hello");
-    router.push('./add');
-  }
+    router.push("./add");
+  };
 
   return (
     <View style={styles.container}>
@@ -59,30 +116,63 @@ const ListEmployees = () => {
 
       {/* Thanh tìm kiếm và icon lọc */}
       <View style={styles.searchContainer}>
-        <SearchText placeholder="Nhập tên nhân viên" style={styles.searchText} setSearchText={function (text: string): void {
-          throw new Error('Function not implemented.');
-        } } />
-        <TouchableOpacity style={styles.filterIconContainer} onPress={() => setModalVisible(true)}>
+        <SearchText
+          placeholder="Nhập tên nhân viên"
+          style={styles.searchText}
+          setSearchText={function (text: string): void {
+            throw new Error("Function not implemented.");
+          }}
+        />
+        <TouchableOpacity
+          style={styles.filterIconContainer}
+          onPress={() => setModalVisible(true)}
+        >
           <MaterialIcons name="filter-list" size={30} color="#007bff" />
           <Text style={styles.filterText}>Lọc</Text>
         </TouchableOpacity>
       </View>
 
       {/* Modal bộ lọc */}
-      <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Chọn vai trò</Text>
-            <TouchableOpacity style={styles.modalOption} onPress={() => { setSelectedRole('Doctor'); setModalVisible(false); }}>
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => {
+                setSelectedRole("Doctor");
+                setModalVisible(false);
+              }}
+            >
               <Text style={styles.modalOptionText}>Bác sĩ</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.modalOption} onPress={() => { setSelectedRole('Pharmacist'); setModalVisible(false); }}>
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => {
+                setSelectedRole("Pharmacist");
+                setModalVisible(false);
+              }}
+            >
               <Text style={styles.modalOptionText}>Dược sĩ</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.modalOption} onPress={() => { setSelectedRole('Staff'); setModalVisible(false); }}>
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => {
+                setSelectedRole("Staff");
+                setModalVisible(false);
+              }}
+            >
               <Text style={styles.modalOptionText}>Nhân viên</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
               <Text style={styles.closeButtonText}>Đóng</Text>
             </TouchableOpacity>
           </View>
@@ -95,20 +185,35 @@ const ListEmployees = () => {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <Animated.View style={[styles.itemContainer, { opacity: fadeAnim }]}>
-            <Link href={`/accounts/${item.id}`} params={{ item }}>
-              <Image source={item.image ? { uri: item.image } : require('@/assets/images/avatar/default.png')} style={styles.image} />
-              <View style={styles.textContainer}>
-                <Text style={styles.name}>{item.full_name}</Text>
-                <Text style={styles.info}>{item.gender}</Text>
-                <Text style={styles.info}>{ formatDate(item.date_of_birth)}</Text>
-              </View>
+            <Link href={`/accounts/${item.id}`} asChild>
+              <TouchableOpacity>
+                <Image
+                  source={
+                    item.image
+                      ? { uri: item.image }
+                      : require("@/assets/images/avatar/default.png")
+                  }
+                  style={styles.image}
+                />
+                <View style={styles.textContainer}>
+                  <Text style={styles.name}>{item.full_name}</Text>
+                  <Text style={styles.info}>{item.gender}</Text>
+                  {/* <Text style={styles.info}>
+                  {formatDate(item.date_of_birth)}
+                </Text> */}
+                </View>
+              </TouchableOpacity>
             </Link>
           </Animated.View>
         )}
       />
-      
+
       {/* Nút thêm bác sĩ */}
-      <MyButton title="Thêm nhân viên mới" style={styles.button} onPress={handleAdd}/>
+      <MyButton
+        title="Thêm nhân viên mới"
+        style={styles.button}
+        onPress={handleAdd}
+      />
     </View>
   );
 };
@@ -120,18 +225,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#e6f7ff',
+    backgroundColor: "#e6f7ff",
   },
   header: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 25,
-    textAlign: 'center',
-    color: '#007bff',
+    textAlign: "center",
+    color: "#007bff",
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   searchText: {
@@ -139,71 +244,71 @@ const styles = StyleSheet.create({
   },
   filterIconContainer: {
     flex: 3,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 10,
     height: 45,
-    backgroundColor: '#e6f7ff',
+    backgroundColor: "#e6f7ff",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#007bff',
+    borderColor: "#007bff",
   },
   filterText: {
     fontSize: 16,
-    color: '#007bff',
+    color: "#007bff",
     marginLeft: 5,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     padding: 20,
     borderRadius: 10,
-    width: '80%',
-    maxHeight: '50%',
+    width: "80%",
+    maxHeight: "50%",
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
-    textAlign: 'center',
+    textAlign: "center",
   },
   modalOption: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: "#ccc",
   },
   modalOptionText: {
     fontSize: 18,
-    color: '#333',
-    textAlign: 'center',
+    color: "#333",
+    textAlign: "center",
   },
   closeButton: {
     marginTop: 15,
-    backgroundColor: '#007bff',
+    backgroundColor: "#007bff",
     paddingVertical: 10,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   closeButtonText: {
     fontSize: 18,
-    color: '#fff',
+    color: "#fff",
   },
   itemContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
     paddingVertical: 20,
     paddingHorizontal: 15,
     borderRadius: 12,
     marginBottom: 15,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 5,
@@ -215,25 +320,25 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   textContainer: {
-    justifyContent: 'center',
+    justifyContent: "center",
     flex: 1,
   },
   name: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   info: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     marginTop: 5,
   },
   button: {
     marginTop: 30,
-    backgroundColor: '#007bff',
+    backgroundColor: "#007bff",
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 30,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
 });

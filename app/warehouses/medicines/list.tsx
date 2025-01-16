@@ -15,34 +15,28 @@ import { Medicine } from "@/types";
 
 const defaultImage = require("@/assets/images/medicine/default.jpg");
 
-const medicines: Medicine[] = require("@/data/medicine.json");
-
-const MedicineList = () => {
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
+const MedicineList = ({ medicines }: { medicines: Medicine[] }) => {
+  // const [medicines, setMedicines] = useState<Medicine[]>([]);
   const router = useRouter();
-  const token = useToken();
-  const fetchData = async () => {
-    try {
-      const data = await getMedicineList(token);
-      setMedicines(data.data); // Gán dữ liệu vào state
-    } catch (error: any) {
-      console.error("Error fetching medicine list:", error.message);
-    }
-  };
+  // const fetchData = async () => {
+  //   try {
+  //     const data = await getMedicineList();
+  //     setMedicines(data.data); // Gán dữ liệu vào state
+  //   } catch (error: any) {
+  //     console.error("Error fetching medicine list:", error.message);
+  //   }
+  // };
 
   // Gọi fetchData khi component được mount
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   fetchData();
+  // }, []);
 
   const renderItem = ({ item }: { item: Medicine }) => (
     <Link href={`/warehouses/medicines/${item.id}`} asChild>
       <TouchableOpacity style={styles.card}>
         {/* Ảnh thuốc */}
-        <Image
-          source={item.image ? { uri: item.image } : defaultImage}
-          style={styles.image}
-        />
+        <Image source={defaultImage} style={styles.image} />
 
         {/* Thông tin thuốc */}
         <View style={styles.info}>
