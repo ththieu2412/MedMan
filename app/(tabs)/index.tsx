@@ -11,7 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function HomeScreen() {
   const user = useAuth();
-  // console.log("Home user: ", user);
+  console.log("Home user: ", user.user);
   return (
     <View>
       <Header />

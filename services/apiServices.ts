@@ -1,7 +1,7 @@
 import { Warehouse, ApiResponse, ImportReceipt,ImportReceiptDetail,Medicine ,Patient, SearchIRFilters,SearchWarehouseFilters} from "@/constants/types"; 
 import axios from 'axios';
 
-const BASE_URL = 'http://192.168.1.10:8000/api'; 
+const BASE_URL = 'http://192.168.1.83:8000/api'; 
 
 export const getWarehouseListsapi = async (): Promise<ApiResponse<Warehouse[]>> => {
   console.log('getWarehousesapi')
