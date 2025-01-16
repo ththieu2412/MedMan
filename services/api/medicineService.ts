@@ -66,9 +66,11 @@ export const detailMedicine = async (medicineId: number) => {
 export const updateMedicine = async (medicineId: number, updateMedicine: Medicine) => {
   try {
     const response = await api.put(`/warehouses/medicines/${medicineId}/`, updateMedicine);
+    console.log("Response trước khi update thành công: ", response)
     return { success: true, data: response.data};
   } catch (error: any) {
     if (error.errorMessage) {
+      console.log("Error khi có lỗi: ", error)
       const errorMessage = error.errorMessage;
       return { success: false, errorMessage };
     }

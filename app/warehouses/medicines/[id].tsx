@@ -53,6 +53,7 @@ const MedicineDetails = () => {
 
     try {
       const response = await updateMedicine(Number(id), updatedMedicine); // Gửi yêu cầu API để cập nhật thuốc
+      console.log("Response nhạn được bên giao diện: ", response);
       if (response.success) {
         setMedicine({ ...response.data, id: medicine?.id });
         setIsEditing(false);
