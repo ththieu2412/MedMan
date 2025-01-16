@@ -58,7 +58,7 @@ const MedicineDetails = () => {
       setIsEditing(false);
       Alert.alert("Cập nhật thành công", "Thông tin thuốc đã được cập nhật.");
     } catch (error: any) {
-      console.error("Error updating medicine:", error.message);
+      console.error("Error updating medicine:", error.response.data.errorMessage);
       Alert.alert("Lỗi", "Có lỗi xảy ra khi cập nhật thuốc.");
     }
   };

@@ -117,9 +117,9 @@ const Categories = () => {
       case "Export":
         router.push("/warehouses/exportReceipts/list");
         break;
-      // case "Report":
-      //   router.push("/warehouses/warehouses/list");
-      //   break;
+      case "Report":
+        router.push("/reports");
+        break;
       default:
         break;
     }
