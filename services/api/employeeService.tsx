@@ -17,3 +17,20 @@ export const employeeDetail = async (id: number) => {
     }
   }
 };
+
+export const getEmployees = async () => {
+  try {
+    const response = await api.get("accounts/employee-list/");
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage };
+    }
+    // Trả về lỗi mặc định nếu không có thông tin lỗi cụ thể
+    return {
+      success: false,
+      errorMessage: "Có lỗi xảy ra khi load danh sách nhân viên.",
+    };
+  }
+};

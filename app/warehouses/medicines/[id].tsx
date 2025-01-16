@@ -48,17 +48,24 @@ const MedicineDetails = () => {
       ...medicine,
       medicine_name: medicineName,
       sale_price: parseFloat(salePrice),
-      stock_quantity: parseInt(stockQuantity),
       unit: unit,
     };
 
     try {
       const response = await updateMedicine(Number(id), updatedMedicine); // Gửi yêu cầu API để cập nhật thuốc
-      setMedicine(response.data);
-      setIsEditing(false);
-      Alert.alert("Cập nhật thành công", "Thông tin thuốc đã được cập nhật.");
+      console.log("Response nhạn được bên giao diện: ", response);
+      if (response.success) {
+        setMedicine({ ...response.data, id: medicine?.id });
+        setIsEditing(false);
+        Alert.alert("Cập nhật thành công", "Thông tin thuốc đã được cập nhật.");
+      } else {
+        Alert.alert(
+          "Lỗi",
+          response.errorMessage || "Có lỗi xảy ra khi thêm thuốc."
+        );
+      }
     } catch (error: any) {
-      console.error("Error updating medicine:", error.message);
+      console.error("Error updating medicine:", error.response.data.errorMessage);
       Alert.alert("Lỗi", "Có lỗi xảy ra khi cập nhật thuốc.");
     }
   };
@@ -69,8 +76,13 @@ const MedicineDetails = () => {
       {
         text: "Xóa",
         onPress: async () => {
-          await deleteMedicine(Number(medicine?.id));
-          router.replace("/(tabs)/medicines");
+          const response = await deleteMedicine(Number(medicine?.id));
+          if (response.success) {
+            Alert.alert("Thông báo", "Xóa thuốc thành công");
+            router.replace("/(tabs)/medicines");
+          } else {
+            Alert.alert("Lỗi", response.errorMessage);
+          }
         },
       },
       { text: "Hủy", style: "cancel" },
@@ -115,16 +127,8 @@ const MedicineDetails = () => {
 
       <View style={styles.detailContainer}>
         <Text style={styles.label}>Số Lượng Tồn:</Text>
-        {isEditing ? (
-          <TextInput
-            style={styles.input}
-            value={stockQuantity}
-            onChangeText={setStockQuantity}
-            keyboardType="numeric"
-          />
-        ) : (
-          <Text style={styles.value}>{stockQuantity}</Text>
-        )}
+
+        <Text style={styles.value}>{stockQuantity}</Text>
       </View>
 
       <View style={styles.detailContainer}>

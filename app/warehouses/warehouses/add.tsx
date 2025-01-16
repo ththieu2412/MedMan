@@ -32,12 +32,18 @@ const AddWarehouse = () => {
       };
 
       console.log("Payload gửi lên API:", payload); // Kiểm tra dữ liệu trước khi gửi
-      await createWarehouse(payload);
-      // Alert.alert("Thành công", "Đã thêm kho mới.");
-      router.replace("/warehouses/warehouses/list");
-    } catch (error) {
-      console.error("Error adding warehouse:", error);
-      Alert.alert("Lỗi", "Không thể thêm kho mới.");
+      const response = await createWarehouse(payload);
+      console.log("phản hồi", response);
+      if (response.success) {
+        Alert.alert("Thành công", "Đã thêm kho mới.");
+        router.replace("/warehouses/warehouses/list");
+      } else {
+        Alert.alert("Thông báo lỗi", response.errorMessage);
+        // router.replace("/warehouses/warehouses/list");
+      }
+    } catch (error: any) {
+      // console.error("Error adding warehouse:", error);
+      Alert.alert("Lỗi", error || "Không thể thêm kho mới.");
     }
   };
 

@@ -13,7 +13,6 @@ import { useAuth } from "@/context/AuthContext";
 const Categories = () => {
   const router = useRouter();
   const { user } = useAuth();
-  console.log("Component Cate: ", user);
 
   // Danh sách danh mục gốc
   const allCategories = [
@@ -117,9 +116,9 @@ const Categories = () => {
       case "Export":
         router.push("/warehouses/exportReceipts/list");
         break;
-      // case "Report":
-      //   router.push("/warehouses/warehouses/list");
-      //   break;
+      case "Report":
+        router.push("/reports");
+        break;
       default:
         break;
     }
