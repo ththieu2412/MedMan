@@ -27,7 +27,6 @@ const AddMedicine = () => {
     if (
       !medicine.medicine_name ||
       !medicine.sale_price ||
-      !medicine.stock_quantity ||
       !medicine.description ||
       !medicine.unit
     ) {
@@ -39,26 +38,29 @@ const AddMedicine = () => {
     const newMedicine = {
       medicine_name: medicine.medicine_name,
       sale_price: medicine.sale_price,
-      stock_quantity: medicine.stock_quantity,
       description: medicine.description,
       unit: medicine.unit,
-      image: medicine.image || "", // Cung cấp link ảnh (nếu có)
     };
 
     try {
       // Gọi hàm createMedicine để tạo thuốc mới
-      const response = await createMedicine(newMedicine);
+      const result = await createMedicine(newMedicine);
 
-      // Hiển thị thông báo thành công
-      Alert.alert("Thành công", "Đã thêm thuốc thành công!");
-
-      // Chuyển trang sau khi lưu thành công
-      router.replace("/(tabs)/medicines");
+      if (result.success) {
+        // Nếu trả về thành công, hiển thị thông báo thành công
+        Alert.alert("Thành công", "Đã thêm thuốc thành công!");
+        // Chuyển trang sau khi lưu thành công
+        router.replace("/(tabs)/medicines");
+      } else {
+        Alert.alert(
+          "Lỗi",
+          result.errorMessage || "Có lỗi xảy ra khi thêm thuốc."
+        );
+      }
     } catch (error) {
-      // TypeScript requires type assertion for unknown errors
+      // Xử lý lỗi khi gọi API
       const errorMessage =
-        (error as Error).message || "Có lỗi xảy ra khi thêm thuốc.";
-      // Xử lý lỗi khi tạo thuốc mới
+        (error as Error).message || "Có lỗi xảy ra khi thêm thuốc B.";
       Alert.alert("Lỗi", errorMessage);
     }
   };
@@ -90,18 +92,6 @@ const AddMedicine = () => {
         }
       />
 
-      {/* Số Lượng */}
-      <Text style={styles.label}>Số Lượng</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Số Lượng"
-        keyboardType="numeric"
-        value={medicine.stock_quantity.toString()}
-        onChangeText={(text) =>
-          setMedicine({ ...medicine, stock_quantity: parseInt(text) })
-        }
-      />
-
       {/* Mô Tả */}
       <Text style={styles.label}>Mô Tả</Text>
       <TextInput
@@ -118,15 +108,6 @@ const AddMedicine = () => {
         placeholder="viên, hộp,..."
         value={medicine.unit}
         onChangeText={(text) => setMedicine({ ...medicine, unit: text })}
-      />
-
-      {/* Link Ảnh */}
-      <Text style={styles.label}>Link Ảnh (Tùy Chọn)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="hinh a"
-        value={medicine.image}
-        onChangeText={(text) => setMedicine({ ...medicine, image: text })}
       />
 
       {/* Hiển thị ảnh nếu có */}

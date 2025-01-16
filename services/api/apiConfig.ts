@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from "@/context/AuthContext"; // Import useAuth từ AuthContext của bạn
 
 
-const BASE_URL = 'http://192.168.1.83:8000/api';
+const BASE_URL = 'http://192.168.1.37:8000/api';
 
 
 // 🌐 Thiết lập URL gốc của API
@@ -39,15 +39,15 @@ api.interceptors.response.use(
     (error) => {
       if (error.response) {
         // Thông báo lỗi từ server
-        console.error('API Error Response:', error.response.data);
+        console.log('API Error Response:', error.response.data);
         return Promise.reject(error.response.data); 
       } else if (error.request) {
         // Lỗi yêu cầu không nhận được phản hồi
-        console.error('API Error Request:', error.request);
+        console.log('API Error Request:', error.request);
         return Promise.reject('Không nhận được phản hồi từ server');
       } else {
         // Lỗi khác
-        console.error('API Error Message:', error.message);
+        console.log('API Error Message:', error.message);
         return Promise.reject(error.message);
       }
     }

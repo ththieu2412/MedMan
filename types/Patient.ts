@@ -5,7 +5,7 @@ export interface Patient{
     id: number;
     full_name: string;
     date_of_birth: string;
-    gender: Gender;
+    gender: boolean;
     id_card: string;
     phone_number: string;
     address: string;
