@@ -11,95 +11,50 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import RNPickerSelect from "react-native-picker-select";
-import {
-  getMedicineList,
-  getWarehouseList,
-  searchEmployeeByRole,
-} from "@/services/api/index";
 
 const AddIRScreenWithDetails = () => {
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [isApproved, setIsApproved] = useState(false);
-  const [warehouse, setWarehouse] = useState(null);
-  const [employee, setEmployee] = useState(null);
-  const [itemDetails, setItemDetails] = useState([]);
-  const [medicines, setMedicines] = useState([]);
-  const [warehouses, setWarehouses] = useState([]);
-  const [employees, setEmployees] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(0); // Tổng tiền
+  const [isApproved, setIsApproved] = useState(false); // Trạng thái đã duyệt
+  const [warehouse, setWarehouse] = useState(""); // Nhà kho
+  const [employee, setEmployee] = useState(""); // Nhân viên
+  const [itemDetails, setItemDetails] = useState([]); // Mảng lưu chi tiết phiếu nhập
+  const [medicines, setMedicines] = useState([]); // Danh sách thuốc
   const [selectedMedicine, setSelectedMedicine] = useState({
     id: null,
     medicine_name: "",
     sale_price: 0,
     stock_quantity: 0,
   });
-  const [quantity, setQuantity] = useState("");
-  const [price, setPrice] = useState("");
+  const [quantity, setQuantity] = useState(""); // Số lượng thuốc
+  const [price, setPrice] = useState(""); // Giá thuốc
 
-  // Fetch data for medicines, warehouses, and employees
   useEffect(() => {
     fetchMedicines();
-    fetchWarehouses();
-    fetchEmployees();
   }, []);
 
+  // Lấy danh sách thuốc (mock API hoặc dữ liệu cứng)
   const fetchMedicines = async () => {
-    try {
-      const response = await getMedicineList();
-      if (response.data && Array.isArray(response.data)) {
-        const options = response.data.map((medicine) => ({
-          label: medicine.medicine_name,
-          value: medicine.id,
-          sale_price: medicine.sale_price,
-          stock_quantity: medicine.stock_quantity,
-        }));
-        setMedicines(options);
-      } else {
-        Alert.alert("Lỗi", "Dữ liệu thuốc không đúng định dạng.");
-      }
-    } catch (error) {
-      Alert.alert("Lỗi", "Không thể tải danh sách thuốc.");
-    }
+    const mockMedicines = [
+      {
+        id: 1,
+        medicine_name: "Paracetamol",
+        sale_price: 5000,
+        stock_quantity: 100,
+      },
+      { id: 2, medicine_name: "Aspirin", sale_price: 7000, stock_quantity: 50 },
+    ];
+    setMedicines(
+      mockMedicines.map((medicine) => ({
+        label: medicine.medicine_name,
+        value: medicine.id,
+        sale_price: medicine.sale_price,
+        stock_quantity: medicine.stock_quantity,
+      }))
+    );
   };
 
-  const fetchWarehouses = async () => {
-    try {
-      const response = await getWarehouseList(token);
-      console.log("response nahf kho", response.data);
-      if (response.data && Array.isArray(response.data)) {
-        const options = response.data.map((warehouse) => ({
-          label: warehouse.warehouse_name,
-          value: warehouse.id,
-        }));
-        setWarehouses(options);
-      } else {
-        Alert.alert("Lỗi", "Dữ liệu nhà kho không đúng định dạng.");
-      }
-    } catch (error) {
-      console.log("response nahf kho", error);
-      Alert.alert("Lỗi", "Không thể tải danh sách nhà kho.");
-    }
-  };
-
-  const fetchEmployees = async () => {
-    try {
-      console.log("respon nhân viên");
-      const response = await searchEmployeeByRole(toke, "Staff");
-      console.log("respon nhân viên", response.data);
-      if (response.data && Array.isArray(response.data)) {
-        const options = response.data.map((employee) => ({
-          label: employee.full_name,
-          value: employee.id,
-        }));
-        setEmployees(options);
-      } else {
-        Alert.alert("Lỗi", "Dữ liệu nhân viên không đúng định dạng.");
-      }
-    } catch (error) {
-      Alert.alert("Lỗi", "Không thể tải danh sách nhân viên.");
-    }
-  };
-
-  const handleMedicineChange = (value) => {
+  // Xử lý chọn thuốc
+  const handleValueChange = (value) => {
     const selected = medicines.find((medicine) => medicine.value === value);
     if (selected) {
       setSelectedMedicine(selected);
@@ -107,15 +62,24 @@ const AddIRScreenWithDetails = () => {
     }
   };
 
+  // Tính tổng tiền
+  const calculateTotalAmount = () => {
+    const total = itemDetails.reduce(
+      (sum, item) => sum + item.detail.quantity * item.detail.price,
+      0
+    );
+    setTotalAmount(total);
+  };
+
+  // Thêm chi tiết phiếu nhập
   const addDetail = () => {
-    if (
-      !warehouse ||
-      !employee ||
-      !selectedMedicine.id ||
-      !quantity ||
-      !price
-    ) {
-      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin.");
+    if (!warehouse || !employee) {
+      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin phiếu nhập trước.");
+      return;
+    }
+
+    if (!selectedMedicine.id || !quantity || !price) {
+      Alert.alert("Lỗi", "Vui lòng chọn thuốc, nhập số lượng và giá.");
       return;
     }
 
@@ -126,19 +90,12 @@ const AddIRScreenWithDetails = () => {
     };
 
     setItemDetails([...itemDetails, { id: itemDetails.length + 1, detail }]);
-    setQuantity("");
-    setPrice("");
-    calculateTotalAmount();
+    setQuantity(""); // Reset số lượng
+    setPrice(""); // Reset giá
+    calculateTotalAmount(); // Cập nhật tổng tiền
   };
 
-  const calculateTotalAmount = () => {
-    const total = itemDetails.reduce(
-      (sum, item) => sum + item.detail.quantity * item.detail.price,
-      0
-    );
-    setTotalAmount(total);
-  };
-
+  // Xóa chi tiết
   const removeDetail = (id) => {
     const newItemDetails = itemDetails.filter((item) => item.id !== id);
     setItemDetails(newItemDetails);
@@ -157,9 +114,13 @@ const AddIRScreenWithDetails = () => {
     </View>
   );
 
+  // Lưu phiếu nhập (chỉ lưu tạm vào mảng)
   const handleSave = () => {
-    if (!totalAmount || !warehouse || !employee || itemDetails.length === 0) {
-      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin.");
+    if (!warehouse || !employee || itemDetails.length === 0) {
+      Alert.alert(
+        "Lỗi",
+        "Vui lòng nhập đầy đủ thông tin và chi tiết phiếu nhập."
+      );
       return;
     }
 
@@ -171,30 +132,36 @@ const AddIRScreenWithDetails = () => {
       details: itemDetails,
     };
 
-    Alert.alert("Thành công", "Phiếu nhập đã được lưu.");
-    console.log(irData);
+    console.log("Phiếu nhập đã lưu tạm:", irData);
+    Alert.alert("Thành công", "Phiếu nhập đã được lưu tạm thời.");
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Thêm Phiếu Nhập</Text>
 
-      <RNPickerSelect
-        onValueChange={(value) => setWarehouse(value)}
-        items={warehouses}
-        placeholder={{ label: "Chọn nhà kho...", value: null }}
-        style={pickerSelectStyles}
-      />
+      <View style={styles.inputGroup}>
+        <MaterialIcons name="warehouse" size={20} color="#333" />
+        <TextInput
+          style={styles.input}
+          placeholder="Nhà kho"
+          value={warehouse}
+          onChangeText={setWarehouse}
+        />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Ionicons name="person-outline" size={20} color="#333" />
+        <TextInput
+          style={styles.input}
+          placeholder="Nhân viên"
+          value={employee}
+          onChangeText={setEmployee}
+        />
+      </View>
 
       <RNPickerSelect
-        onValueChange={(value) => setEmployee(value)}
-        items={employees}
-        placeholder={{ label: "Chọn nhân viên...", value: null }}
-        style={pickerSelectStyles}
-      />
-
-      <RNPickerSelect
-        onValueChange={(value) => handleMedicineChange(value)}
+        onValueChange={(value) => handleValueChange(value)}
         items={medicines}
         placeholder={{ label: "Chọn thuốc...", value: null }}
         style={pickerSelectStyles}
@@ -246,6 +213,7 @@ const AddIRScreenWithDetails = () => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#f5f5f5" },
   title: {
@@ -256,12 +224,6 @@ const styles = StyleSheet.create({
   },
   inputGroup: { flexDirection: "row", alignItems: "center", marginBottom: 15 },
   input: { flex: 1, borderBottomWidth: 1, borderColor: "#ccc", marginLeft: 10 },
-  switchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  switchText: { fontSize: 16, marginLeft: 10 },
   button: {
     backgroundColor: "#4CAF50",
     padding: 15,
@@ -281,6 +243,7 @@ const styles = StyleSheet.create({
   detailText: { fontSize: 16, color: "#333", flex: 1 },
   emptyText: { textAlign: "center", color: "#999" },
 });
+
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
     padding: 10,

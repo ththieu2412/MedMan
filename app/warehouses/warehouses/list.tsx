@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FlatList,
   View,
@@ -6,26 +6,57 @@ import {
   TouchableOpacity,
   StyleSheet,
   Button,
+  TextInput,
+  Switch,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { getWarehouseList } from "@/services/api/warehouseService"; // API call để lấy danh sách nhà kho
 import { useToken } from "@/hooks/useToken"; // Hook để lấy token
 import { Warehouse } from "@/types"; // Định nghĩa kiểu Warehouse
 import { useFocusEffect } from "@react-navigation/native"; // Import useFocusEffect
+import { searchWarehouses } from "@/services/api/warehouseService"; // Hàm tìm kiếm
 
 const WarehouseList = () => {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]); // Khởi tạo state để chứa dữ liệu nhà kho
+  const [address, setAddress] = useState(""); // State để lưu địa chỉ tìm kiếm
+  const [isActive, setIsActive] = useState(false); // State để lưu trạng thái hoạt động của kho
+  const [loading, setLoading] = useState(false); // State để kiểm tra trạng thái đang tải
   const router = useRouter();
   const token = useToken();
 
   // Hàm lấy danh sách nhà kho
   const fetchData = async () => {
     try {
+      setLoading(true);
       const data = await getWarehouseList(token);
       setWarehouses(data.data); // Gán dữ liệu vào state
     } catch (error: any) {
       console.error("Error fetching warehouse list:", error.message);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Hàm tìm kiếm kho theo các tham số
+const handleSearch = async () => {
+  // Kiểm tra nếu ít nhất một tham số tìm kiếm đã được nhập
+  if (!address && !isActive) {
+    // Hiển thị thông báo lỗi hoặc không thực hiện tìm kiếm nếu không có tham số tìm kiếm
+    alert("Vui lòng nhập ít nhất một thông tin tìm kiếm (địa chỉ hoặc trạng thái kho).");
+    return; // Dừng hàm nếu không có tham số tìm kiếm
+  }
+
+  setLoading(true);
+  const result = await searchWarehouses(token, address, isActive ? "true" : "false");
+  setLoading(false);
+  setWarehouses(result || []); // Cập nhật danh sách kho
+};
+
+  // Hàm lấy lại tất cả các kho (xóa các tham số tìm kiếm và tải lại danh sách)
+  const handleReset = () => {
+    setAddress(""); // Xóa địa chỉ tìm kiếm
+    setIsActive(false); // Đặt lại trạng thái là false
+    fetchData(); // Lấy lại toàn bộ danh sách kho
   };
 
   // Gọi fetchData khi component được mount
@@ -58,6 +89,32 @@ const WarehouseList = () => {
 
   return (
     <View style={{ flex: 1 }}>
+      {/* Form tìm kiếm */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Tìm theo địa chỉ kho"
+          value={address}
+          onChangeText={setAddress}
+        />
+        
+        {/* Switch để tìm kiếm theo trạng thái kho */}
+        <View style={styles.switchContainer}>
+          <Text>Trạng thái kho</Text>
+          <Switch
+            value={isActive}
+            onValueChange={setIsActive}
+          />
+        </View>
+
+        <Button title="Tìm kiếm" onPress={handleSearch} />
+      </View>
+
+      {/* Nút Lấy lại tất cả kho */}
+      <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+        <Text style={styles.resetButtonText}>Lấy lại tất cả kho</Text>
+      </TouchableOpacity>
+
       {/* Nút Thêm Kho */}
       <TouchableOpacity
         style={styles.addButton}
@@ -67,12 +124,16 @@ const WarehouseList = () => {
       </TouchableOpacity>
 
       {/* Danh sách nhà kho */}
-      <FlatList
-        data={warehouses} // Sử dụng dữ liệu từ state
-        keyExtractor={(item) => item.id.toString()} // Sử dụng id của nhà kho làm key
-        renderItem={renderItem} // Hàm render mỗi item
-        contentContainerStyle={styles.container} // Style cho nội dung FlatList
-      />
+      {loading ? (
+        <Text>Đang tải...</Text>
+      ) : (
+        <FlatList
+          data={warehouses} // Sử dụng dữ liệu từ state
+          keyExtractor={(item) => item.id.toString()} // Sử dụng id của nhà kho làm key
+          renderItem={renderItem} // Hàm render mỗi item
+          contentContainerStyle={styles.container} // Style cho nội dung FlatList
+        />
+      )}
     </View>
   );
 };
@@ -122,6 +183,37 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  resetButton: {
+    backgroundColor: "#f44336",
+    padding: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    margin: 10,
+  },
+  resetButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  searchContainer: {
+    padding: 10,
+    marginBottom: 20,
+    backgroundColor: "#f7f7f7",
+    borderRadius: 10,
+  },
+  input: {
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingLeft: 8,
+    borderRadius: 5,
+  },
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
   },
 });
 
