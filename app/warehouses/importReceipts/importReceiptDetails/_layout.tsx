@@ -4,10 +4,20 @@ import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { iconSize } from "@/constants/dimensions";
 
-const MedicinesLayout = () => {
+const IRDetailsLayout = () => {
   const router = useRouter();
   const backHome = () => {
-    router.replace("/(tabs)/medicines");
+    Alert.alert(
+      "Xác nhận thoát",
+      "Bạn có chắc chắn muốn thoát không? Các thay đổi chưa được lưu sẽ bị mất.",
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Thoát",
+          onPress: () => router.replace("/warehouses/importReceipts/list"),
+        },
+      ]
+    );
   };
   return (
     <Stack>
@@ -31,7 +41,7 @@ const MedicinesLayout = () => {
           ),
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="add"
         options={{
           title: "Thêm Mới",
@@ -50,12 +60,12 @@ const MedicinesLayout = () => {
             </TouchableOpacity>
           ),
         }}
-      />
+      /> */}
     </Stack>
   );
 };
 
-export default MedicinesLayout;
+export default IRDetailsLayout;
 
 const styles = StyleSheet.create({
   icon: {

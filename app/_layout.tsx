@@ -47,6 +47,7 @@ export default function RootLayout() {
               options={{ headerShown: false }}
             />
             <Stack.Screen name="warehouses" options={{ headerShown: false }} />
+            
             <Stack.Screen name="+not-found" />
           </Stack>
           {/* <StatusBar style="auto" /> */}

@@ -4,10 +4,23 @@ import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { iconSize } from "@/constants/dimensions";
 
-const MedicinesLayout = () => {
+const WarehousesLayout = () => {
   const router = useRouter();
   const backHome = () => {
-    router.replace("/(tabs)/medicines");
+    router.replace("/warehouses/importReceipts/list");
+    // const backHome = () => {
+    //   Alert.alert(
+    //     "Xác nhận thoát",
+    //     "Bạn có chắc chắn muốn thoát không? Các thay đổi chưa được lưu sẽ bị mất.",
+    //     [
+    //       { text: "Hủy", style: "cancel" },
+    //       {
+    //         text: "Thoát",
+    //         onPress: () => router.replace("/warehouses/importReceipts/list"),
+    //       },
+    //     ]
+    //   );
+    // };
   };
   return (
     <Stack>
@@ -15,6 +28,26 @@ const MedicinesLayout = () => {
         name="[id]"
         options={{
           title: "Chi Tiết",
+          headerShown: true,
+          headerTintColor: "#FFFFFF",
+          headerStyle: {
+            backgroundColor: "#1E90FF",
+          },
+          headerTitleStyle: {
+            fontWeight: "bold",
+            fontSize: 20,
+          },
+          headerLeft: () => (
+            <TouchableOpacity onPress={backHome} style={styles.icon}>
+              <Ionicons name={"arrow-back"} size={iconSize.md} color="white" />
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="list"
+        options={{
+          title: "Danh sách",
           headerShown: true,
           headerTintColor: "#FFFFFF",
           headerStyle: {
@@ -55,7 +88,7 @@ const MedicinesLayout = () => {
   );
 };
 
-export default MedicinesLayout;
+export default WarehousesLayout;
 
 const styles = StyleSheet.create({
   icon: {

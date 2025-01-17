@@ -1,22 +1,22 @@
 import { Warehouse } from "@//types";
 import api from "./apiConfig";
 
-export const getWarehouseList = async (token: string) => {
+export const getWarehouseList = async () => {
   try {
     const response = await api.get('/warehouses/warehouse-list/');
-    console.log("response tesst ", response);
-    return {sucess:true,data:response.data};
+    console.log("response tesst ", response.data);
+    return {success:true,data:response.data};
   } catch (error: any) {
    if (error.errorMessage){
-      return error.errorMessage;
+    const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
    }
-      
+      return { success: false, data: "Có lỗi xảy ra"};
     
   }
 };
 // hàm tìm kiếm kho
 export const searchWarehouses = async (
-  token: string,
   address: string,
   isActive: string
 ) => {
@@ -36,27 +36,19 @@ export const searchWarehouses = async (
     const url = `/warehouses/warehouses/search/?${params.toString()}`;
 
     // Gửi yêu cầu GET với token trong header Authorization
-    const response = await api.get(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.get(url);
 
     // Log response để kiểm tra (có thể xóa sau khi hoàn thành)
     console.log("Response from API:", response);
 
     // Trả về dữ liệu nhận được từ API
-    return response.data.data;  // Giả sử API trả về data trong trường `data`
+    return { success: true, data: response.data};
   } catch (error: any) {
-    // Nếu có lỗi từ phản hồi, log và trả về lỗi
-    if (error.response) {
-      console.error("Error response:", error.response.data);
-      return error.response.data;  // Trả về thông tin lỗi từ server
-    } else {
-      // Nếu không có phản hồi từ server, log và trả về lỗi chung
-      console.error("Error:", error.message);
-      return { errorMessage: error.message };
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };
 
@@ -76,21 +68,16 @@ export const createWarehouse = async (warehouseData: Warehouse) => {
   }
 };
 
-export const detailWarehouse = async (token: string, warehouseId: number) => {
+export const detailWarehouse = async (warehouseId: number) => {
   try {
     const response = await api.get(`/warehouses/warehouse-list/${warehouseId}/`);
-    return response.data;
+    return { success: true, data: response.data};
   } catch (error: any) {
-    if (error.response) {
-      console.error('Error response:', error.response.data);
-      throw new Error(error.response.data.detail || 'Unknown error');
-    } else if (error.request) {
-      console.error('Error request:', error.request);
-      throw new Error('No response from server');
-    } else {
-      console.error('Error message:', error.message);
-      throw new Error(error.message);
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };
 
@@ -113,21 +100,13 @@ export const updateWarehouse = async (
       dataToUpdate
     );
 
-    return response.data;
+    return { success: true, data: response.data};
   } catch (error: any) {
-    // if (error.response) {
-    //   console.error('Error response:', error.response.data);
-    //   console.log("lỗi:", response.errMessage);
-    //   throw new Error(error.response.data.detail || 'Unknown error');
-    // } else if (error.request) {
-    //   console.log("lỗi:", response.errMessage);
-    //   console.error('Error request:', error.request);
-    //   throw new Error('No response from server');
-    // } else {
-    //   console.log("lỗi:", response.errMessage);
-    //   console.error('Error message:', error.message);
-    //   throw new Error(error.message);
-    // }
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
+    }
+    return { success: false, data: "Có lỗi xảy ra"};
     
   }
 };
@@ -136,22 +115,15 @@ export const deleteWarehouse = async (token: string, warehouseId: number) => {
   try {
     const response = await api.delete(`/warehouses/warehouses/${warehouseId}/`);
     console.log(`Đã xóa kho: ${warehouseId}`, response);
-
+    return { success: true, data: response.data};
     
   } catch (error: any) {
-    console.log(`Đã xóa kho: ${warehouseId}`, response);
-    console.error('Error response:', response.errorMessage);
-    // if (error.response) {
-    //   console.error('Error response:', error.response.data);
-    //   throw new Error(error.response.data.detail || 'Unknown error');
-    // } else if (error.request) {
-    //   console.error('Error request:', error.request);
-    //   throw new Error('No response from server');
-    // } else {
-    //   console.error('Error message:', error.message);
-    //   throw new Error(error.message);
-    // }
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
+    }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
-    return response;
+    
 
 };

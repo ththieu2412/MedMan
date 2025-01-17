@@ -29,14 +29,27 @@ const WarehouseDetails = () => {
     if (!id) return;
 
     try {
-      const data = await detailWarehouse(token, Number(id)); // Gọi API để lấy chi tiết kho
-      setWarehouse(data.data); // Lưu dữ liệu vào state
-      setUpdatedWarehouse({
-        address: data.data.address, // Cập nhật address
-        is_active: data.data.is_active, // Cập nhật is_active
-      });
-      setLoading(false); // Dừng trạng thái loading
-      setError(null); // Đặt lỗi thành null khi lấy thành công
+      const data = await detailWarehouse(Number(id)); // Gọi API để lấy chi tiết kho
+      if (data.success) {
+        setWarehouse(data.data.data); // Lưu dữ liệu vào state
+        setUpdatedWarehouse({
+          address: data.data.data.address, // Cập nhật address
+          is_active: data.data.data.is_active, // Cập nhật is_active
+        });
+        setLoading(false); // Dừng trạng thái loading
+        setError(null); // Đặt lỗi thành null khi lấy thành công
+        // Alert.alert("Thành công", "Đã thêm kho mới.");
+      } else {
+        Alert.alert("Thông báo lỗi", data.errorMessage);
+        // router.replace("/warehouses/warehouses/list");
+      }
+      // setWarehouse(data.data.data); // Lưu dữ liệu vào state
+      // setUpdatedWarehouse({
+      //   address: data.data.address, // Cập nhật address
+      //   is_active: data.data.is_active, // Cập nhật is_active
+      // });
+      // setLoading(false); // Dừng trạng thái loading
+      // setError(null); // Đặt lỗi thành null khi lấy thành công
     } catch (error: any) {
       setLoading(false); // Dừng trạng thái loading khi có lỗi
       setError("Không thể tải thông tin kho. Vui lòng thử lại.");
@@ -129,21 +142,9 @@ const WarehouseDetails = () => {
 
         <View style={styles.detailContainer}>
           <Text style={styles.label}>Tên Kho:</Text>
-          {isEditing ? (
-            <TextInput
-              style={styles.input}
-              value={updatedWarehouse.warehouse_name} // Dùng updatedWarehouse.warehouse_name
-              onChangeText={
-                (text) =>
-                  setUpdatedWarehouse({
-                    ...updatedWarehouse,
-                    warehouse_name: text,
-                  }) // Cập nhật giá trị
-              }
-            />
-          ) : (
+          
             <Text style={styles.value}>{warehouse.warehouse_name}</Text>
-          )}
+          
         </View>
 
         <View style={styles.detailContainer}>
@@ -165,7 +166,6 @@ const WarehouseDetails = () => {
         <View style={styles.detailContainer}>
           <Text style={styles.label}>Trạng Thái:</Text>
           {isEditing ? (
-
             <View style={styles.switchWrapper}>
               <Switch
                 value={updatedWarehouse.is_active}
@@ -177,7 +177,6 @@ const WarehouseDetails = () => {
                 {updatedWarehouse.is_active ? "Hoạt động" : "Không hoạt động"}
               </Text>
             </View>
-
           ) : (
             <Text style={styles.value}>
               {warehouse.is_active ? "Hoạt động" : "Không hoạt động"}

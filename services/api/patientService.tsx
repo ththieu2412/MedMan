@@ -17,6 +17,24 @@ export const getPatients = async () => {
   }
 };
 
+export const createPatient = async (patient: Patient) => {
+  try {
+    console.log("Patient truyền qua API: ", patient);
+    const response = await api.post(`/prescriptions/patients/`, patient);
+
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage };
+    }
+    return {
+      success: false,
+      errorMessage: "Có lỗi xảy ra khi thêm bệnh nhân.",
+    };
+  }
+};
+
 export const PatientDetail = async (id: number) => {
   try {
     const response = await api.get(`/prescriptions/patients/${id}`);

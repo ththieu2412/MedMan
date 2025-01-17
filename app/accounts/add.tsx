@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,75 +8,168 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
+import { parse } from "date-fns";
+import { useRouter } from "expo-router";
+import { format, formatDate } from "date-fns";
+import * as ImagePicker from "expo-image-picker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { Picker } from "@react-native-picker/picker";
+import CustomInput from "@/components/CustomInput";
+import MyButton from "@/components/MyButton";
 import { fontSize, spacing } from "@/constants/dimensions";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import CustomInput from "@/components/CustomInput";
-import Fontisto from "@expo/vector-icons/Fontisto";
-import AntDesign from "@expo/vector-icons/build/AntDesign";
-import Feather from "@expo/vector-icons/build/Feather";
-import FontAwesome6 from "@expo/vector-icons/build/FontAwesome6";
-import MyButton from "@/components/MyButton";
-import { useRouter } from "expo-router";
-import { Picker } from "@react-native-picker/picker";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { format } from "date-fns";
-import * as ImagePicker from "expo-image-picker";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
+import { createEmployees, createPatient } from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
 
-export default function SettingScreen() {
-  const [image, setImage] = useState(null);
-  const [gender, setGender] = useState("Nam");
-  const [role, setRole] = useState("Nhân viên");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const [cccd, setCccd] = useState("");
-  const [address, setAddress] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const validateFields = (profile) => {
+  const errors = {};
+
+  // Kiểm tra trường họ tên
+  if (/[^a-zA-Z\s]/.test(profile.full_name)) {
+    errors.full_name = "Họ tên không chứa ký tự đặc biệt!";
+  }
+
+  // Kiểm tra trường ngày sinh
+  if (new Date(profile.date_of_birth) > new Date()) {
+    errors.date_of_birth = "Ngày sinh phải nhỏ hơn ngày hiện tại!";
+  }
+
+  // Kiểm tra CCCD (13 ký tự số)
+  if (!/^\d{12}$/.test(profile.citizen_id)) {
+    errors.citizen_id = "CCCD phải là chuỗi 12 ký tự số!";
+  }
+
+  // Kiểm tra số điện thoại
+  if (!/^\d{10,20}$/.test(profile.phone_number)) {
+    errors.phone_number = "Số điện thoại phải là chuỗi số từ 10 đến 20 ký tự!";
+  }
+
+  // Kiểm tra email
+  if (
+    !profile.email ||
+    !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(profile.email)
+  ) {
+    errors.email = "Email không hợp lệ!";
+  }
+
+  // Kiểm tra các trường còn lại
+  if (!profile.address) {
+    errors.address = "Địa chỉ không được để trống!";
+  }
+
+  return errors;
+};
+
+const SettingScreen = () => {
+  const [profile, setProfile] = useState({
+    // image: null,
+    full_name: "",
+    gender: "Nam",
+    date_of_birth: "",
+    citizen_id: "",
+    address: "",
+    phone_number: "",
+    email: "",
+    is_active: false,
+    role: "staff",
+  });
+
+  const [errors, setErrors] = useState({});
+
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const router = useRouter();
 
-  // Hàm xử lý khi nhấn nút sửa thông tin
-  const handleEdit = () => {
-    console.log("Đang sửa");
+  const router = useRouter();
+  const user = useAuth();
+
+  const handleEdit = useCallback(async () => {
+    if (
+      !profile.address ||
+      !profile.date_of_birth ||
+      !profile.email ||
+      !profile.full_name ||
+      !profile.citizen_id ||
+      !profile.phone_number ||
+      !profile.gender ||
+      !profile.role
+    ) {
+      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
+
+    const validationErrors = validateFields(profile);
+    setErrors(validationErrors);
+
+    // Nếu có lỗi, không tiếp tục
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
 
     Alert.alert("Xác nhận", "Bạn có muốn tạo nhân viên mới?", [
       {
         text: "Đồng ý",
-        onPress: () => {
-          console.log("Nhân viên đã được tạo!");
-          console.log(role);
-          if (role === "Admin") {
-            router.replace("./list?role=Staff");
-          } else {
-            router.push(`./list?role=${role}`);
+        onPress: async () => {
+          try {
+            const formattedProfile = {
+              ...profile,
+              date_of_birth: profile.date_of_birth
+                ? format(
+                    parse(profile.date_of_birth, "dd/MM/yyyy", new Date()),
+                    "yyyy-MM-dd"
+                  )
+                : null, // Xử lý nếu date_of_birth null
+            };
+
+            console.log("Profile gửi tạo: ", formattedProfile);
+
+            const response = await createEmployees(formattedProfile);
+            console.log(response);
+
+            if (response.success) {
+              Alert.alert("Thông báo", "Thêm nhân viên thành công");
+              console.log("Nhân viên đã được tạo!");
+              router.push(`./list?role=${profile.role}`);
+            } else {
+              if (response.error.date_of_birth) {
+                Alert.alert("Lỗi", response.error.date_of_birth);
+              } else {
+                Alert.alert("Lỗi", response.error.detail);
+              }
+            }
+          } catch (error) {
+            console.log("Lỗi khi tạo nhân viên: ", error);
+            Alert.alert("Lỗi", "Có lỗi xảy ra khi tạo nhân viên.");
           }
         },
       },
-      {
-        text: "Hủy",
-        style: "cancel",
-      },
+      { text: "Hủy", style: "cancel" },
     ]);
-  };
+  }, [profile]);
 
-  // Hiển thị modal chọn ngày tháng
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
-  };
+  const handleFieldChange = useCallback(
+    (field) => (value) => {
+      setProfile((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
-  const hideDatePicker = () => {
-    setDatePickerVisibility(false);
-  };
+  const showDatePicker = () => setDatePickerVisibility(true);
+  const hideDatePicker = () => setDatePickerVisibility(false);
 
   const handleDateConfirm = (date) => {
-    setDateOfBirth(format(date, "dd/MM/yyyy")); // Định dạng ngày tháng
+    setProfile((prev) => ({
+      ...prev,
+      date_of_birth: format(date, "dd/MM/yyyy"),
+    }));
     hideDatePicker();
   };
 
   const handleChoosePhoto = async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permissionResult.granted === false) {
+    if (!permissionResult.granted) {
       Alert.alert(
         "Permission required",
         "You need to grant media library permissions to select a photo."
@@ -91,14 +184,13 @@ export default function SettingScreen() {
     });
 
     if (!result.canceled) {
-      console.log("Ảnh đã chọn:", result.uri);
-      setImage({ uri: result.uri });
+      setProfile((prev) => ({ ...prev, image: { uri: result.uri } }));
     }
   };
 
   const handleTakePhoto = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    if (permissionResult.granted === false) {
+    if (!permissionResult.granted) {
       Alert.alert(
         "Permission required",
         "You need to grant camera permissions to take a photo."
@@ -112,7 +204,7 @@ export default function SettingScreen() {
     });
 
     if (!result.canceled) {
-      setImage({ uri: result.uri });
+      setProfile((prev) => ({ ...prev, image: { uri: result.uri } }));
     }
   };
 
@@ -121,18 +213,9 @@ export default function SettingScreen() {
       "Chọn phương thức",
       "Bạn muốn chọn ảnh từ thư viện hay chụp ảnh mới?",
       [
-        {
-          text: "Chọn từ thư viện",
-          onPress: handleChoosePhoto,
-        },
-        {
-          text: "Chụp ảnh",
-          onPress: handleTakePhoto,
-        },
-        {
-          text: "Hủy",
-          style: "cancel",
-        },
+        { text: "Chọn từ thư viện", onPress: handleChoosePhoto },
+        { text: "Chụp ảnh", onPress: handleTakePhoto },
+        { text: "Hủy", style: "cancel" },
       ]
     );
   };
@@ -144,7 +227,11 @@ export default function SettingScreen() {
     >
       <View style={styles.profileImageContainer}>
         <Image
-          source={image ? image : require("@/assets/images/avatar/default.png")}
+          source={
+            profile.image
+              ? profile.image
+              : require("@/assets/images/avatar/default.png")
+          }
           style={styles.profileImage}
         />
         <TouchableOpacity
@@ -160,22 +247,27 @@ export default function SettingScreen() {
           label="Họ và tên"
           placeholder="Nguyễn Văn A"
           icon={<AntDesign name="user" size={24} color="black" />}
-          onChangeText={(text) => setCccd(text)}
-          type={""}
+          onChangeText={handleFieldChange("full_name")}
         />
+        {errors.full_name && (
+          <Text style={styles.errorText}>{errors.full_name}</Text>
+        )}
 
-        <Text style={styles.inputLabel}>Vai trò</Text>
-        <View style={styles.inputRow}>
-          <FontAwesome6 name="user-doctor" size={24} color="black" />
+        <Text style={styles.inputLabel}>Role</Text>
+        <View style={styles.picker}>
           <Picker
-            selectedValue={role}
-            onValueChange={(itemValue) => setRole(itemValue)}
-            style={styles.picker}
+            selectedValue={profile.role}
+            onValueChange={(value) => {
+              // Kiểm tra nếu giá trị mới khác với giá trị cũ trước khi cập nhật
+              if (profile.role !== value) {
+                handleFieldChange("role")(value);
+              }
+            }}
           >
-            <Picker.Item label="Admin" value="Admin" />
-            <Picker.Item label="Bác sĩ" value="Doctor" />
-            <Picker.Item label="Dược sĩ" value="Pharmacist" />
-            <Picker.Item label="Nhân viên" value="Staff" />
+            <Picker.Item label="Quản lý" value="admin" />
+            <Picker.Item label="Nhân Viên" value="staff" />
+            <Picker.Item label="Bác sĩ" value="doctor" />
+            <Picker.Item label="Dược sĩ" value="pharmacist" />
           </Picker>
         </View>
 
@@ -183,12 +275,12 @@ export default function SettingScreen() {
         <View style={styles.inputRow}>
           <FontAwesome name="transgender" size={24} color="black" />
           <Picker
-            selectedValue={gender}
-            onValueChange={(itemValue) => setGender(itemValue)}
-            style={styles.picker}
+            selectedValue={profile.gender === 1 ? "Nam" : "Nữ"}
+            onValueChange={handleFieldChange("gender")}
+            style={styles.pickerA}
           >
-            <Picker.Item label="Nam" value="Nam" />
-            <Picker.Item label="Nữ" value="Nữ" />
+            <Picker.Item label="Nam" value="1" style={styles.pickerItemText} />
+            <Picker.Item label="Nữ" value="0" style={styles.pickerItemText} />
           </Picker>
         </View>
 
@@ -196,54 +288,77 @@ export default function SettingScreen() {
         <TouchableOpacity style={styles.inputRow} onPress={showDatePicker}>
           <FontAwesome name="birthday-cake" size={24} color="black" />
           <Text style={styles.textInput}>
-            {dateOfBirth ? dateOfBirth : "Chọn ngày"}
+            {profile.date_of_birth || "Chọn ngày"}
           </Text>
         </TouchableOpacity>
+        {errors.date_of_birth && (
+          <Text style={styles.errorText}>{errors.date_of_birth}</Text>
+        )}
 
         <CustomInput
           label="CCCD"
           placeholder="0802xxxxxxxx"
           icon={<AntDesign name="idcard" size={24} color="black" />}
-          onChangeText={(text) => setCccd(text)}
-          type={""}
+          onChangeText={handleFieldChange("citizen_id")}
         />
+        {errors.citizen_id && (
+          <Text style={styles.errorText}>{errors.citizen_id}</Text>
+        )}
+
         <CustomInput
           label="Địa chỉ"
           placeholder="789 Pham Ngoc Thach St, Hanoi, Vietnam"
           icon={<FontAwesome6 name="address-book" size={24} color="black" />}
-          onChangeText={(text) => setAddress(text)}
-          type={""}
+          onChangeText={handleFieldChange("address")}
         />
+        {errors.address && (
+          <Text style={styles.errorText}>{errors.address}</Text>
+        )}
+
         <CustomInput
           label="SĐT"
           placeholder="0918xxxxxx"
           icon={<Feather name="phone" size={24} color="black" />}
-          onChangeText={(text) => setPhoneNumber(text)}
-          type={""}
+          onChangeText={handleFieldChange("phone_number")}
         />
+        {errors.phone_number && (
+          <Text style={styles.errorText}>{errors.phone_number}</Text>
+        )}
+
         <CustomInput
           label="Email"
           placeholder="xxx@gmail.com"
-          icon={<Fontisto name="email" size={24} color="black" />}
-          onChangeText={(text) => setEmail(text)}
-          type={""}
+          icon={<FontAwesome name="envelope" size={24} color="black" />}
+          onChangeText={handleFieldChange("email")}
         />
-        <CustomInput
-          label="Password"
-          placeholder="****************"
-          icon={<AntDesign name="unlock" size={24} color="black" />}
-          type="password"
-          onChangeText={(text) => setPassword(text)}
-        />
+        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+
+        <Text style={styles.inputLabel}>Trạng thái làm việc</Text>
+        <View style={styles.picker}>
+          <Picker
+            selectedValue={profile.is_active}
+            onValueChange={(value) => handleFieldChange("is_active", value)}
+          >
+            <Picker.Item
+              label="Đang làm việc"
+              value={1}
+              style={styles.pickerItemText}
+            />
+            <Picker.Item
+              label="Nghỉ việc"
+              value={0}
+              style={styles.pickerItemText}
+            />
+          </Picker>
+        </View>
       </View>
 
       <MyButton
-        title="Lưu"
+        title="Tạo mới"
         onPress={handleEdit}
         buttonStyle={{ backgroundColor: "green", marginBottom: spacing.md }}
       />
 
-      {/* Modal chọn ngày */}
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="date"
@@ -252,13 +367,10 @@ export default function SettingScreen() {
       />
     </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: spacing.md,
-  },
+  container: { flex: 1, padding: spacing.md },
   profileImageContainer: {
     justifyContent: "center",
     alignItems: "center",
@@ -281,14 +393,20 @@ const styles = StyleSheet.create({
     marginTop: -18,
     marginLeft: 50,
   },
-  inputTextFieldContainer: {
-    marginTop: spacing.sm,
-  },
+  inputTextFieldContainer: { marginTop: spacing.sm },
   inputLabel: {
     fontSize: fontSize.md,
     fontWeight: "bold",
     color: "black",
     marginVertical: spacing.sm,
+  },
+
+  picker: {
+    borderWidth: 1,
+    borderColor: "#cccccc",
+    borderRadius: 12,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
   },
   inputRow: {
     borderWidth: 1,
@@ -296,16 +414,18 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: spacing.xs,
+    padding: 20,
   },
-  picker: {
-    flex: 1,
-    marginLeft: spacing.sm,
-    color: "#cccccc",
+  errorText: {
+    color: "red",
+    fontSize: 15,
+    marginLeft: 8,
   },
-  textInput: {
-    flex: 1,
-    marginLeft: spacing.sm,
-    fontSize: fontSize.md,
+  pickerItemText: {
+    color: "#000000", // Màu chữ mà bạn muốn, ở đây là màu xanh dương
   },
+  pickerA: { flex: 1, marginLeft: spacing.sm, color: "#cccccc" },
+  textInput: { flex: 1, marginLeft: spacing.sm, fontSize: fontSize.md },
 });
+
+export default SettingScreen;

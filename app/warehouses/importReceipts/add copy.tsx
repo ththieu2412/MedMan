@@ -3,137 +3,195 @@ import {
   View,
   Text,
   TextInput,
-  Switch,
-  StyleSheet,
   TouchableOpacity,
   FlatList,
   Alert,
+  Modal,
+  StyleSheet,
+  ScrollView,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import RNPickerSelect from "react-native-picker-select";
+import {
+  createImportReceiptAndDetails,
+  getMedicineList,
+  getWarehouseList,
+  searchEmployeeByRole,
+} from "@/services/api/index";
+import { useAuth } from "@/context/AuthContext";
 
 const AddIRScreenWithDetails = () => {
-  const [totalAmount, setTotalAmount] = useState(0); // Tổng tiền
-  const [isApproved, setIsApproved] = useState(false); // Trạng thái đã duyệt
-  const [warehouse, setWarehouse] = useState(""); // Nhà kho
-  const [employee, setEmployee] = useState(""); // Nhân viên
-  const [itemDetails, setItemDetails] = useState([]); // Mảng lưu chi tiết phiếu nhập
-  const [medicines, setMedicines] = useState([]); // Danh sách thuốc
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [isApproved, setIsApproved] = useState(false);
+  const [warehouse, setWarehouse] = useState(null);
+  const [employee, setEmployee] = useState(null);
+  const [itemDetails, setItemDetails] = useState([]);
+  const [medicines, setMedicines] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState({
     id: null,
     medicine_name: "",
     sale_price: 0,
     stock_quantity: 0,
   });
-  const [quantity, setQuantity] = useState(""); // Số lượng thuốc
-  const [price, setPrice] = useState(""); // Giá thuốc
+  const [quantity, setQuantity] = useState("");
+  const [price, setPrice] = useState("");
+  const user = useAuth();
+  const employee_id = user.user?.employee_id;
 
   useEffect(() => {
     fetchMedicines();
-  }, []);
+    fetchWarehouses();
+    fetchEmployees();
+    calculateTotalAmount();
+  }, [itemDetails]);
 
-  // Lấy danh sách thuốc (mock API hoặc dữ liệu cứng)
   const fetchMedicines = async () => {
-    const mockMedicines = [
-      {
-        id: 1,
-        medicine_name: "Paracetamol",
-        sale_price: 5000,
-        stock_quantity: 100,
-      },
-      { id: 2, medicine_name: "Aspirin", sale_price: 7000, stock_quantity: 50 },
-    ];
-    setMedicines(
-      mockMedicines.map((medicine) => ({
-        label: medicine.medicine_name,
-        value: medicine.id,
-        sale_price: medicine.sale_price,
-        stock_quantity: medicine.stock_quantity,
-      }))
-    );
+    try {
+      const response = await getMedicineList();
+      if (response.data && Array.isArray(response.data)) {
+        const options = response.data.map((medicine) => ({
+          label: medicine.medicine_name,
+          value: medicine.id,
+          sale_price: medicine.sale_price,
+          stock_quantity: medicine.stock_quantity,
+        }));
+        setMedicines(options);
+      } else {
+        Alert.alert("Lỗi", "Dữ liệu thuốc không đúng định dạng.");
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", error || "Không thể tải thuốc.");
+    }
   };
 
-  // Xử lý chọn thuốc
-  const handleValueChange = (value) => {
+  const fetchWarehouses = async () => {
+    try {
+      const response = await getWarehouseList();
+      if (response.success) {
+        const options = response.data.data.map((warehouse) => ({
+          label: warehouse.warehouse_name,
+          value: warehouse.id,
+        }));
+        setWarehouses(options);
+      } else {
+        Alert.alert("Thông báo lỗi", response.errorMessage);
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", error || "Không thể tải danh sách nhà kho.");
+    }
+  };
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await searchEmployeeByRole("Staff");
+      if (response.success) {
+        const options = response.data.data.map((employee) => ({
+          label: employee.full_name,
+          value: employee.id,
+        }));
+        setEmployees(options);
+
+        if (employee_id) {
+          const selectedEmployee = response.data.data.find(
+            (emp) => emp.id === employee_id
+          );
+          if (selectedEmployee) {
+            setEmployee(selectedEmployee.full_name);
+          }
+        }
+      } else {
+        Alert.alert("Thông báo lỗi", response.errorMessage);
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", error || "Không thể tải danh sách nhân viên.");
+    }
+  };
+
+  const handleMedicineChange = (value) => {
     const selected = medicines.find((medicine) => medicine.value === value);
     if (selected) {
-      setSelectedMedicine(selected);
+      setSelectedMedicine({
+        id: value,
+        medicine_name: selected.label,
+        sale_price: selected.sale_price,
+        stock_quantity: selected.stock_quantity,
+      });
       setPrice(selected.sale_price.toString());
     }
   };
 
-  // Tính tổng tiền
+  const addDetail = () => {
+    if (!selectedMedicine.id || !quantity || !price) {
+      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin chi tiết.");
+      return;
+    }
+
+    const newDetail = {
+      id: selectedMedicine.id,
+      medicine_name: selectedMedicine.medicine_name,
+      quantity: parseInt(quantity),
+      price: parseFloat(price),
+    };
+    setItemDetails((prevDetails) => [...prevDetails, newDetail]);
+
+    setQuantity("");
+    setPrice("");
+    setSelectedMedicine({
+      id: null,
+      medicine_name: "",
+      sale_price: 0,
+      stock_quantity: 0,
+    });
+
+    setModalVisible(false);
+  };
+
   const calculateTotalAmount = () => {
     const total = itemDetails.reduce(
-      (sum, item) => sum + item.detail.quantity * item.detail.price,
+      (sum, item) => sum + item.quantity * item.price,
       0
     );
     setTotalAmount(total);
   };
 
-  // Thêm chi tiết phiếu nhập
-  const addDetail = () => {
-    if (!warehouse || !employee) {
-      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin phiếu nhập trước.");
+  const handleSave = async () => {
+    if (!totalAmount || !warehouse || !employee || itemDetails.length === 0) {
+      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin.");
       return;
     }
 
-    if (!selectedMedicine.id || !quantity || !price) {
-      Alert.alert("Lỗi", "Vui lòng chọn thuốc, nhập số lượng và giá.");
-      return;
-    }
-
-    const detail = {
-      medicine_name: selectedMedicine.medicine_name,
-      quantity: parseInt(quantity),
-      price: parseFloat(price),
-    };
-
-    setItemDetails([...itemDetails, { id: itemDetails.length + 1, detail }]);
-    setQuantity(""); // Reset số lượng
-    setPrice(""); // Reset giá
-    calculateTotalAmount(); // Cập nhật tổng tiền
-  };
-
-  // Xóa chi tiết
-  const removeDetail = (id) => {
-    const newItemDetails = itemDetails.filter((item) => item.id !== id);
-    setItemDetails(newItemDetails);
-    calculateTotalAmount();
-  };
-
-  const renderDetail = ({ item }) => (
-    <View style={styles.detailRow}>
-      <Text style={styles.detailText}>
-        {item.detail.medicine_name} - {item.detail.quantity} x{" "}
-        {item.detail.price} VND
-      </Text>
-      <TouchableOpacity onPress={() => removeDetail(item.id)}>
-        <Ionicons name="trash-outline" size={20} color="#FF5252" />
-      </TouchableOpacity>
-    </View>
-  );
-
-  // Lưu phiếu nhập (chỉ lưu tạm vào mảng)
-  const handleSave = () => {
-    if (!warehouse || !employee || itemDetails.length === 0) {
-      Alert.alert(
-        "Lỗi",
-        "Vui lòng nhập đầy đủ thông tin và chi tiết phiếu nhập."
-      );
-      return;
-    }
+    const formattedDetails = itemDetails.map((item) => ({
+      medicine: item.id,
+      quantity: item.quantity,
+      price: item.price,
+    }));
 
     const irData = {
-      total_amount: totalAmount,
-      is_approved: isApproved,
-      warehouse,
-      employee,
-      details: itemDetails,
+      warehouse: warehouse,
+      employee: employee_id,
+      details: formattedDetails,
     };
 
-    console.log("Phiếu nhập đã lưu tạm:", irData);
-    Alert.alert("Thành công", "Phiếu nhập đã được lưu tạm thời.");
+    try {
+      const response = await createImportReceiptAndDetails(irData);
+      if (response.success) {
+        Alert.alert("Thành công", "Phiếu nhập đã được lưu.");
+        setTotalAmount(0);
+        setWarehouse(null);
+        setEmployee(null);
+        setItemDetails([]);
+      } else {
+        Alert.alert(
+          "Lỗi",
+          response.errorMessage || "Không thể lưu phiếu nhập."
+        );
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", error.message || "Đã xảy ra lỗi khi lưu phiếu nhập.");
+    }
   };
 
   return (
@@ -141,123 +199,225 @@ const AddIRScreenWithDetails = () => {
       <Text style={styles.title}>Thêm Phiếu Nhập</Text>
 
       <View style={styles.inputGroup}>
-        <MaterialIcons name="warehouse" size={20} color="#333" />
-        <TextInput
-          style={styles.input}
-          placeholder="Nhà kho"
-          value={warehouse}
-          onChangeText={setWarehouse}
+        <Text style={styles.label}>Kho:</Text>
+        <RNPickerSelect
+          onValueChange={(value) => setWarehouse(value)}
+          items={warehouses}
+          placeholder={{ label: "Chọn nhà kho...", value: null }}
+          style={pickerSelectStyles}
         />
       </View>
 
       <View style={styles.inputGroup}>
-        <Ionicons name="person-outline" size={20} color="#333" />
+        <Text style={styles.label}>Nhân viên:</Text>
         <TextInput
           style={styles.input}
-          placeholder="Nhân viên"
-          value={employee}
-          onChangeText={setEmployee}
-        />
-      </View>
-
-      <RNPickerSelect
-        onValueChange={(value) => handleValueChange(value)}
-        items={medicines}
-        placeholder={{ label: "Chọn thuốc...", value: null }}
-        style={pickerSelectStyles}
-      />
-
-      <View style={styles.inputGroup}>
-        <Ionicons name="calculator-outline" size={20} color="#333" />
-        <TextInput
-          style={styles.input}
-          placeholder="Số lượng"
-          keyboardType="numeric"
-          value={quantity}
-          onChangeText={setQuantity}
-        />
-      </View>
-
-      <View style={styles.inputGroup}>
-        <Ionicons name="pricetag-outline" size={20} color="#333" />
-        <TextInput
-          style={styles.input}
-          placeholder="Giá"
-          keyboardType="numeric"
-          value={price}
+          value={employee || ""}
           editable={false}
+          placeholder="Chọn nhân viên..."
         />
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={addDetail}>
-        <Text style={styles.buttonText}>
-          <Ionicons name="add-circle-outline" size={20} color="#fff" /> Thêm Chi
-          Tiết
-        </Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text style={styles.buttonText}>+ Thêm Chi Tiết</Text>
       </TouchableOpacity>
 
+      <Text style={styles.subtitle}>Danh sách chi tiết:</Text>
       <FlatList
         data={itemDetails}
-        renderItem={renderDetail}
-        keyExtractor={(item) => item.id.toString()}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>Chưa có chi tiết phiếu nhập.</Text>
-        }
+        renderItem={({ item, index }) => (
+          <View style={styles.detailRow}>
+            <Text>{`${item.medicine_name} - ${item.quantity} x ${item.price} VND`}</Text>
+            <TouchableOpacity
+              style={styles.removeButton}
+              onPress={() => {
+                setItemDetails((prev) => prev.filter((_, i) => i !== index));
+                calculateTotalAmount();
+              }}
+            >
+              <Ionicons name="trash-bin" size={20} color="red" />
+            </TouchableOpacity>
+          </View>
+        )}
+        keyExtractor={(_, index) => index.toString()}
+        ListEmptyComponent={<Text>Chưa có chi tiết phiếu nhập.</Text>}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSave}>
-        <Text style={styles.buttonText}>
-          <Ionicons name="save" size={20} color="#fff" /> Lưu Phiếu Nhập
-        </Text>
+      <Text style={styles.totalAmount}>Tổng số tiền: {totalAmount} VND</Text>
+
+      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+        <Text style={styles.saveButtonText}>Lưu Phiếu Nhập</Text>
       </TouchableOpacity>
+
+      <Modal visible={modalVisible} transparent={true} animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Thêm Chi Tiết</Text>
+            <RNPickerSelect
+              onValueChange={(value) => handleMedicineChange(value)}
+              items={medicines}
+              placeholder={{ label: "Chọn thuốc...", value: null }}
+              style={pickerSelectStyles}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Số lượng"
+              keyboardType="numeric"
+              value={quantity}
+              onChangeText={setQuantity}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Giá"
+              keyboardType="numeric"
+              value={price}
+              editable={false}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.addButton} onPress={addDetail}>
+                <Text style={styles.buttonText}>Thêm</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Đóng</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#f5f5f5" },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 15,
-  },
-  inputGroup: { flexDirection: "row", alignItems: "center", marginBottom: 15 },
-  input: { flex: 1, borderBottomWidth: 1, borderColor: "#ccc", marginLeft: 10 },
-  button: {
-    backgroundColor: "#4CAF50",
-    padding: 15,
-    borderRadius: 8,
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#f9f9f9",
     alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginTop: 20,
+  },
+  inputGroup: {
+    width: "100%",
     marginBottom: 15,
   },
-  buttonText: { color: "#fff", fontSize: 16 },
+  label: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  input: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: "#007bff",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 5,
+    marginTop: 15,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  totalAmount: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 20,
+  },
+  saveButton: {
+    backgroundColor: "#28a745",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontSize: 16,
+  },
   detailRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
+    width: "100%",
   },
-  detailText: { fontSize: 16, color: "#333", flex: 1 },
-  emptyText: { textAlign: "center", color: "#999" },
+  removeButton: {
+    paddingLeft: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    width: "80%",
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  addButton: {
+    backgroundColor: "#28a745",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  closeButton: {
+    backgroundColor: "#dc3545",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 5,
+    marginTop: 10,
+  },
 });
 
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
     padding: 10,
+    fontSize: 16,
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 8,
-    marginBottom: 15,
+    borderRadius: 5,
   },
   inputAndroid: {
     padding: 10,
+    fontSize: 16,
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 8,
-    marginBottom: 15,
+    borderRadius: 5,
   },
 });
 

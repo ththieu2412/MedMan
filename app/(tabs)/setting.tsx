@@ -42,21 +42,22 @@ export default function SettingScreen() {
   const [isEdited, setIsEdited] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
+  const shouldShowButton = user?.role === "admin";
+
   // Fetch dữ liệu chi tiết nhân viên
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await employeeDetail(user?.employee_id);
-        console.log("Profile employee:", response);
-        if (response) {
-          setDateOfBirth(formatDate(response.date_of_birth));
-          setCccd(response.id_card);
-          setAddress(response.address);
-          setPhoneNumber(response.phone_number);
-          setEmail(response.email);
-          setFullName(response.full_name);
-          setGender(response.gender == false ? "Nữ" : "Nam");
-          setImage(response.image);
+        if (response.success) {
+          setDateOfBirth(formatDate(response.data.date_of_birth));
+          setCccd(response.data.citizen_id);
+          setAddress(response.data.address);
+          setPhoneNumber(response.data.phone_number);
+          setEmail(response.data.email);
+          setFullName(response.data.full_name);
+          setGender(response.data.gender == false ? "Nữ" : "Nam");
+          setImage(response.data.image);
         }
       } catch (error) {
         console.error("Error fetching employee details:", error);
@@ -172,7 +173,7 @@ export default function SettingScreen() {
       </View>
 
       <View style={styles.inputTextFieldContainer}>
-        <Text style={styles.inputLabel}>{gender}</Text>
+        <Text style={styles.inputLabel}>Giới tính</Text>
         <Picker
           selectedValue={gender}
           onValueChange={(value) => {
@@ -186,6 +187,7 @@ export default function SettingScreen() {
         </Picker>
 
         {/* Chọn ngày tháng năm sinh */}
+        <Text style={styles.inputLabel}>Ngày tháng năm sinh</Text>
         <TouchableOpacity
           style={styles.inputRow}
           onPress={() => setDatePickerVisibility(true)}
@@ -198,8 +200,11 @@ export default function SettingScreen() {
           label="CCCD"
           placeholder="Nhập CCCD"
           icon={<AntDesign name="idcard" size={24} color="black" />}
-          onChangeText={(text) => handleInputChange(text, "cccd")}
+          onChangeText={(text) => {
+            handleInputChange(text, "cccd");
+          }}
           text={cccd}
+          edit={shouldShowButton}
         />
         <CustomInput
           label="Địa chỉ"
@@ -207,6 +212,7 @@ export default function SettingScreen() {
           icon={<FontAwesome6 name="address-book" size={24} color="black" />}
           onChangeText={(text) => handleInputChange(text, "address")}
           text={address}
+          edit={shouldShowButton}
         />
         <CustomInput
           label="SĐT"
@@ -214,6 +220,7 @@ export default function SettingScreen() {
           icon={<Feather name="phone" size={24} color="black" />}
           onChangeText={(text) => handleInputChange(text, "phoneNumber")}
           text={phoneNumber}
+          edit={shouldShowButton}
         />
         <CustomInput
           label="Email"
@@ -221,18 +228,19 @@ export default function SettingScreen() {
           icon={<Fontisto name="email" size={24} color="black" />}
           onChangeText={(text) => handleInputChange(text, "email")}
           text={email}
+          edit={shouldShowButton}
         />
-        <CustomInput
+        {/* <CustomInput
           label="Password"
           placeholder="Nhập mật khẩu"
           icon={<AntDesign name="unlock" size={24} color="black" />}
           type="password"
           onChangeText={(text) => handleInputChange(text, "password")}
           text="****************"
-        />
+        /> */}
       </View>
 
-      {isEdited && (
+      {shouldShowButton && isEdited && (
         <MyButton
           title="Sửa thông tin"
           onPress={handleEdit}
@@ -311,11 +319,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: spacing.xs,
+    padding: 20,
   },
   picker: {
-    flex: 1,
-    marginLeft: spacing.sm,
+    borderWidth: 1, // Đặt độ dày viền
+    borderColor: "#000", // Màu của viền (ở đây là màu đen)
+    borderRadius: 8, // Góc bo tròn của viền
+    paddingLeft: 10, // Thêm padding để cách nội dung trong picker
+    paddingRight: 10,
   },
   textInput: {
     flex: 1,
