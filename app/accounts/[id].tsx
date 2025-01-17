@@ -161,7 +161,18 @@ export default function SettingScreen() {
       if (response.success) {
         Alert.alert("Thông báo", "Lưu thông tin thành công!");
       } else {
-        Alert.alert("Lỗi", "Lưu thông tin không thành công.");
+        // Xử lý lỗi từ API
+        if (response.error) {
+          if (response.error.phone_number) {
+            Alert.alert("Lỗi", response.error.phone_number);
+          } else if (response.error.email) {
+            Alert.alert("Lỗi", response.error.email);
+          } else {
+            Alert.alert("Lỗi", response.error.detail);
+          }
+        } else {
+          Alert.alert("Lỗi", "Đã xảy ra lỗi không xác định.");
+        }
       }
     } catch (error) {
       console.error(error);
@@ -216,12 +227,14 @@ export default function SettingScreen() {
           edit={false}
         />
 
-        <Text style={styles.inputLabel}>Ngày tháng năm sinh</Text>
-        <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
-          <Text style={styles.textInput}>
-            {formData.date_of_birth || "Chọn ngày"}
-          </Text>
-        </TouchableOpacity>
+        <CustomInput
+          label="Ngày tháng năm sinh"
+          placeholder="dd/MM/YYYY"
+          icon={<FontAwesome name="birthday-cake" size={24} color="black" />}
+          text={formData.date_of_birth}
+          type={""}
+          edit={false}
+        />
 
         <CustomInput
           label="Địa chỉ"
@@ -230,7 +243,9 @@ export default function SettingScreen() {
           text={formData.address}
           onChangeText={(text) => handleFieldChange("address", text)}
           type={""}
+          edit={true}
         />
+
         <CustomInput
           label="SĐT"
           placeholder="0918xxxxxx"
@@ -238,6 +253,7 @@ export default function SettingScreen() {
           text={formData.phone_number}
           onChangeText={(text) => handleFieldChange("phone_number", text)}
           type={""}
+          edit={true}
         />
         <CustomInput
           label="Email"
@@ -246,6 +262,7 @@ export default function SettingScreen() {
           text={formData.email}
           onChangeText={(text) => handleFieldChange("email", text)}
           type={""}
+          edit={true}
         />
 
         <Text style={styles.inputLabel}>Trạng thái làm việc</Text>
