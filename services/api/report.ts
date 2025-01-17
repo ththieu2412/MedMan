@@ -38,7 +38,6 @@ export const ReportImportReceipt = async (
   }
 };
 export const ReportEmployeeActivity = async (
-  token: string,
   limit: string,
 ) => {
   try {
@@ -70,7 +69,6 @@ export const ReportEmployeeActivity = async (
   }
 };
 export const ReportInventory = async (
-  token: string
 ) => {
   try {
 

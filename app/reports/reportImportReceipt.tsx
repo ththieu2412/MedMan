@@ -29,12 +29,8 @@ const reportImportReceipt = () => {
 
   const fetchReport = async () => {
     try {
-      const data = await ReportImportReceipt(
-        token,
-        startDateForApi,
-        endDateForApi
-      );
-      setReportData(data);
+      const data = await ReportImportReceipt(startDateForApi, endDateForApi);
+      setReportData(data.data);
     } catch (error) {
       console.error("Error fetching report:", error);
     }
