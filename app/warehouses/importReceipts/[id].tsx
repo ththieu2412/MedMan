@@ -46,21 +46,39 @@ const IRDetails = () => {
   const fetchIRDetails = async () => {
     if (!id) return;
     try {
-      const data = await detailIR(token, Number(id));
-      if (data.data) {
-        setIrDetails(data.data);
+      const data = await detailIR(Number(id));
+      if (data.success) {
+        setIrDetails(data.data.data);
         setUpdatedIR({
-          id: data.data.id,
-          import_date: data.data.import_date,
-          warehouse: data.data.warehouse,
-          is_approved: data.data.is_approved,
-          employee: data.data.employee,
-          total_amount: data.data.total_amount,
-          details: data.data.details || [],
+          id: data.data.data.id,
+          import_date: data.data.data.import_date,
+          warehouse: data.data.data.warehouse,
+          is_approved: data.data.data.is_approved,
+          employee: data.data.data.employee,
+          total_amount: data.data.data.total_amount,
+          details: data.data.data.details || [],
         });
+        setLoading(false);
+        setError(null);
+      } else {
+        Alert.alert("Thông báo lỗi", data.errorMessage);
+        // router.replace("/warehouses/warehouses/list");
+        
       }
-      setLoading(false);
-      setError(null);
+      // if (data.data) {
+      //   setIrDetails(data.data);
+      //   setUpdatedIR({
+      //     id: data.data.id,
+      //     import_date: data.data.import_date,
+      //     warehouse: data.data.warehouse,
+      //     is_approved: data.data.is_approved,
+      //     employee: data.data.employee,
+      //     total_amount: data.data.total_amount,
+      //     details: data.data.details || [],
+      //   });
+      // }
+      // setLoading(false);
+      // setError(null);
     } catch (error: any) {
       setLoading(false);
       setError("Không thể tải thông tin phiếu nhập. Vui lòng thử lại.");
@@ -69,28 +87,49 @@ const IRDetails = () => {
 
   const fetchWarehousesList = async () => {
     try {
-      const response = await getWarehouseList(token); // Gọi API lấy danh sách kho
-      if (response.data) {
-        const formattedData = response.data.map((item: any) => ({
+      const response = await getWarehouseList(); // Gọi API lấy danh sách kho
+      if (response.success) {
+        const formattedData = response.data.data.map((item: any) => ({
           label: item.warehouse_name,
           value: item.id,
         }));
         setWarehouses(formattedData); // Đặt danh sách kho vào state
+      } else {
+        Alert.alert("Thông báo lỗi", response.errorMessage);
+        // router.replace("/warehouses/warehouses/list");
       }
+      // if (response.data) {
+      //   const formattedData = response.data.map((item: any) => ({
+      //     label: item.warehouse_name,
+      //     value: item.id,
+      //   }));
+      //   setWarehouses(formattedData); // Đặt danh sách kho vào state
+      // }
     } catch (error: any) {
-      Alert.alert("Lỗi", error.response.data.errorMessage);
+      Alert.alert("Lỗi", error);
     }
   };
 
   const fetchProductDetails = async () => {
     if (!id) return;
     try {
-      const response = await detailbyIRId(token, Number(id));
-      if (response.data) {
-        setProductDetails(response.data || []);
+      const response = await detailbyIRId(Number(id));
+      console.log(
+        "response = await detailbyIRId(Number(id));",
+        response.data.data
+      );
+      if (response.success) {
+        setProductDetails(response.data.data|| []);
+      } else {
+        Alert.alert("Thông báo lỗi", response.errorMessage);
+        // router.replace("/warehouses/warehouses/list");
       }
+
+      // if (response.data) {
+      //   setProductDetails(response.data || []);
+      // }
     } catch (error: any) {
-      Alert.alert("Lỗi", error.response.data.errorMessage);
+      Alert.alert("Lỗi", error);
     }
   };
 
@@ -131,18 +170,21 @@ const IRDetails = () => {
       };
 
       // Gọi API cập nhật
-      const response = await updateIR(token, irDetails.id, updatedIRData);
-
+      const response = await updateIR(irDetails.id, updatedIRData);
+      if (response.success) {
+        Alert.alert("Thành công", "Cập nhật phiếu nhập thành công!");
+        fetchIRDetails();
+      } else {
+        Alert.alert("Thông báo lỗi", response.errorMessage);
+        // router.replace("/warehouses/warehouses/list");
+      }
       // Lấy lại dữ liệu sau khi cập nhật
-      fetchIRDetails();
+      // fetchIRDetails();
 
-      Alert.alert("Cập nhật phiếu nhập thành công!");
+      // Alert.alert("Cập nhật phiếu nhập thành công!");
       setIsEditing(false);
     } catch (error: any) {
-      Alert.alert(
-        "Thông báo lỗi ",
-        error.response?.data || error.message || "Đã xảy ra lỗi."
-      );
+      Alert.alert("Thông báo lỗi ", error || "Đã xảy ra lỗi.");
     }
   };
 
@@ -166,11 +208,19 @@ const IRDetails = () => {
           text: "Xóa",
           onPress: async () => {
             try {
-              await deleteIR(token, irDetails.id);
+              const response = await deleteIR(irDetails.id);
+              if (response.success) {
+                Alert.alert("Thành công", "Xóa phiếu nhập thành công!.");
+              } else {
+                Alert.alert("Thông báo lỗi", response.errorMessage);
+              }
               router.replace("/warehouses/importReceipts/list");
               Alert.alert("Xóa phiếu nhập thành công!");
-            } catch (error) {
-              Alert.alert("Xóa phiếu nhập thất bại. Vui lòng thử lại.");
+            } catch (error: any) {
+              Alert.alert(
+                "Lỗi",
+                error || "Xóa phiếu nhập thất bại. Vui lòng thử lại."
+              );
             }
           },
         },
@@ -316,8 +366,8 @@ const IRDetails = () => {
           >
             <Icon name="pencil" size={24} color="#007bff" />
           </TouchableOpacity>
-          {productDetails.map((detail: any, index: number) => (
-            <View key={index} style={styles.productDetail}>
+          {productDetails.map((detail: any) => (
+            <View key={detail.id} style={styles.productDetail}>
               <Text style={styles.productDetailText}>
                 Tên thuốc: {detail.medicine}
               </Text>

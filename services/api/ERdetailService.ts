@@ -1,6 +1,6 @@
 import api from "./apiConfig";
 
-export const getIRDList = async () => {
+export const getERDList = async () => {
   try {
     const response = await api.get('/warehouses/import-receipt-list/');
     return { success: true, data: response.data};
@@ -59,9 +59,9 @@ export const updatebyIRId = async (
   }
 };
 
-export const deleteIRD = async (IRDId: number) => {
+export const deleteERD = async (ERDId: number) => {
   try {
-    const response = await api.delete(`/warehouses/import-receipt-details/${IRDId}/`);
+    const response = await api.delete(`/warehouses/warehouse/${ERDId}/`);
     return { success: true, data: response.data};
   } catch (error: any) {
     if (error.errorMessage) {
