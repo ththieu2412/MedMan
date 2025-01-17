@@ -130,7 +130,10 @@ const Medicines = () => {
         style={styles.medicineListContainer}
       >
         {displayedMedicines.length > 0 ? (
-          <MedicineList medicines={displayedMedicines} />
+          <MedicineList
+            medicines={displayedMedicines}
+            isEdit={shouldShowButton}
+          />
         ) : (
           <Text style={styles.noResultText}>Không tìm thấy thuốc phù hợp</Text>
         )}
