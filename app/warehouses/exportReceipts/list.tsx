@@ -34,7 +34,8 @@ const ERListScreen = () => {
   const fetchListER = async () => {
     try {
       setLoading(true);
-      const response = await getERList(token); // Fetch all export receipts
+      const response = await getERList(); // Fetch all export receipts
+      console.log("response xuất", response.data);
       setErList(response.data || []);
     } catch (error) {
       console.error("Error fetching all ER records:", error);
@@ -45,7 +46,13 @@ const ERListScreen = () => {
   };
 
   const fetchFilteredERList = async () => {
-    if (!startDate && !endDate && !employeeName && !warehouseName && !isApproved) {
+    if (
+      !startDate &&
+      !endDate &&
+      !employeeName &&
+      !warehouseName &&
+      !isApproved
+    ) {
       Alert.alert("Lỗi", "Vui lòng nhập ít nhất một tham số để tìm kiếm.");
       return;
     }
@@ -67,8 +74,14 @@ const ERListScreen = () => {
       );
       setErList(response || []);
     } catch (error) {
-      console.error("Error searching ER list:", error.response?.data.errorMessage);
-      Alert.alert("Error", error.response?.data.errorMessage || "An error occurred");
+      console.error(
+        "Error searching ER list:",
+        error.response?.data.errorMessage
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data.errorMessage || "An error occurred"
+      );
     } finally {
       setLoading(false);
     }
@@ -95,16 +108,20 @@ const ERListScreen = () => {
       onPress={() => router.push(`/warehouses/exportReceipts/${item.id}`)}
     >
       <Text style={styles.erName}>
-        <Ionicons name="document-text-outline" size={16} color="#FF9800" /> Mã phiếu:{" "}
-        {item.id}
+        <Ionicons name="document-text-outline" size={16} color="#FF9800" /> Mã
+        phiếu: {item.id}
       </Text>
       <Text style={styles.erDate}>
-        <Ionicons name="person-outline" size={16} color="#FF9800" /> Nhân viên lập:{" "}
-        {item.employee_name}
+        <Ionicons name="person-outline" size={16} color="#FF9800" /> Nhân viên
+        lập: {item.employee.full_name}
+      </Text>
+      <Text style={styles.erDate}>
+        <Ionicons name="document-text-outline" size={16} color="#FF9800" /> Đơn
+        thuốc: {item.prescription}
       </Text>
       <Text style={styles.erDate}>
         <Ionicons name="business-outline" size={16} color="#FF9800" /> Nhà kho:{" "}
-        {item.warehouse_name}
+        {item.warehouse.warehouse_name}
       </Text>
       <Text style={styles.erDate}>
         <Ionicons name="calendar-outline" size={16} color="#FF9800" /> Ngày lập:{" "}
@@ -116,7 +133,11 @@ const ERListScreen = () => {
       </Text>
       <Text style={styles.erDate}>
         <Ionicons
-          name={item.is_approved ? "checkmark-circle-outline" : "close-circle-outline"}
+          name={
+            item.is_approved
+              ? "checkmark-circle-outline"
+              : "close-circle-outline"
+          }
           size={16}
           color={item.is_approved ? "#4CAF50" : "#FF5252"}
         />{" "}
@@ -125,7 +146,8 @@ const ERListScreen = () => {
     </TouchableOpacity>
   );
 
-  const showDate = (date) => (date ? date.toLocaleDateString("vi-VN") : "Chọn ngày");
+  const showDate = (date) =>
+    date ? date.toLocaleDateString("vi-VN") : "Chọn ngày";
 
   if (loading) {
     return (
@@ -138,96 +160,103 @@ const ERListScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-  <TouchableOpacity
-    style={styles.expandButton}
-    onPress={() => setIsSearchExpanded(!isSearchExpanded)}
-  >
-    <Ionicons
-      name={isSearchExpanded ? "chevron-up-outline" : "chevron-down-outline"}
-      size={20}
-      color="#fff"
-    />
-    <Text style={styles.expandButtonText}>
-      {isSearchExpanded ? "Thu gọn" : "Mở rộng"}
-    </Text>
-  </TouchableOpacity>
-
-  {isSearchExpanded && (
-    <>
-      <View style={styles.row}>
         <TouchableOpacity
-          style={[styles.datePickerButton, styles.rowItem]}
-          onPress={() => setStartPickerVisible(true)}
+          style={styles.expandButton}
+          onPress={() => setIsSearchExpanded(!isSearchExpanded)}
         >
-          <Text style={styles.datePickerText}>
-            <Ionicons name="calendar-outline" size={16} color="#333" /> Từ ngày:{" "}
-            {showDate(startDate)}
+          <Ionicons
+            name={
+              isSearchExpanded ? "chevron-up-outline" : "chevron-down-outline"
+            }
+            size={20}
+            color="#fff"
+          />
+          <Text style={styles.expandButtonText}>
+            {isSearchExpanded ? "Thu gọn" : "Mở rộng"}
           </Text>
         </TouchableOpacity>
-        <DateTimePickerModal
-          isVisible={isStartPickerVisible}
-          mode="date"
-          onConfirm={(date) => {
-            setStartPickerVisible(false);
-            setStartDate(date);
-          }}
-          onCancel={() => setStartPickerVisible(false)}
-        />
+
+        {isSearchExpanded && (
+          <View style={styles.searchContainer}>
+            <View style={styles.row}>
+              <TouchableOpacity
+                style={[styles.datePickerButton, styles.rowItem]}
+                onPress={() => setStartPickerVisible(true)}
+              >
+                <Text style={styles.datePickerText}>
+                  <Ionicons name="calendar-outline" size={16} color="#333" /> Từ
+                  ngày: {showDate(startDate)}
+                </Text>
+              </TouchableOpacity>
+              <DateTimePickerModal
+                isVisible={isStartPickerVisible}
+                mode="date"
+                onConfirm={(date) => {
+                  setStartPickerVisible(false);
+                  setStartDate(date);
+                }}
+                onCancel={() => setStartPickerVisible(false)}
+              />
+
+              <TouchableOpacity
+                style={[styles.datePickerButton, styles.rowItem]}
+                onPress={() => setEndPickerVisible(true)}
+              >
+                <Text style={styles.datePickerText}>
+                  <Ionicons name="calendar-outline" size={16} color="#333" />{" "}
+                  Đến ngày: {showDate(endDate)}
+                </Text>
+              </TouchableOpacity>
+              <DateTimePickerModal
+                isVisible={isEndPickerVisible}
+                mode="date"
+                onConfirm={(date) => {
+                  setEndPickerVisible(false);
+                  setEndDate(date);
+                }}
+                onCancel={() => setEndPickerVisible(false)}
+              />
+            </View>
+
+            <View style={styles.row}>
+              <TextInput
+                style={[styles.input, styles.rowItem]}
+                placeholder="Nhân viên"
+                value={employeeName}
+                onChangeText={setEmployeeName}
+              />
+              <TextInput
+                style={[styles.input, styles.rowItem]}
+                placeholder="Nhà kho"
+                value={warehouseName}
+                onChangeText={setWarehouseName}
+              />
+            </View>
+
+            <View style={styles.row}>
+              <View style={[styles.switchContainer, styles.rowItem]}>
+                <Text>Trạng thái đã duyệt</Text>
+                <Switch value={isApproved} onValueChange={setIsApproved} />
+              </View>
+              <TouchableOpacity
+                style={[styles.searchButton, styles.rowItem]}
+                onPress={fetchFilteredERList}
+              >
+                <Ionicons name="search-outline" size={20} color="#fff" />
+                <Text style={styles.searchButtonText}>Tìm kiếm</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         <TouchableOpacity
-          style={[styles.datePickerButton, styles.rowItem]}
-          onPress={() => setEndPickerVisible(true)}
+          style={styles.clearFiltersButton}
+          onPress={resetFilters}
         >
-          <Text style={styles.datePickerText}>
-            <Ionicons name="calendar-outline" size={16} color="#333" /> Đến ngày:{" "}
-            {showDate(endDate)}
-          </Text>
-        </TouchableOpacity>
-        <DateTimePickerModal
-          isVisible={isEndPickerVisible}
-          mode="date"
-          onConfirm={(date) => {
-            setEndPickerVisible(false);
-            setEndDate(date);
-          }}
-          onCancel={() => setEndPickerVisible(false)}
-        />
-      </View>
-
-      <View style={styles.row}>
-        <TextInput
-          style={[styles.input, styles.rowItem]}
-          placeholder="Nhân viên"
-          value={employeeName}
-          onChangeText={setEmployeeName}
-        />
-        <TextInput
-          style={[styles.input, styles.rowItem]}
-          placeholder="Nhà kho"
-          value={warehouseName}
-          onChangeText={setWarehouseName}
-        />
-      </View>
-
-      <View style={styles.row}>
-        <View style={[styles.switchContainer, styles.rowItem]}>
-          <Text>Trạng thái đã duyệt</Text>
-          <Switch value={isApproved} onValueChange={setIsApproved} />
-        </View>
-        <TouchableOpacity style={[styles.searchButton, styles.rowItem]} onPress={fetchFilteredERList}>
-          <Ionicons name="search-outline" size={20} color="#fff" />
-          <Text style={styles.searchButtonText}>Tìm kiếm</Text>
+          <Ionicons name="refresh-outline" size={20} color="#000" />
+          <Text style={styles.clearFiltersText}>Xóa bộ lọc</Text>
         </TouchableOpacity>
       </View>
-    </>
-  )}
-
-  <TouchableOpacity style={styles.clearFiltersButton} onPress={resetFilters}>
-    <Ionicons name="refresh-outline" size={20} color="#000" />
-    <Text style={styles.clearFiltersText}>Xóa bộ lọc</Text>
-  </TouchableOpacity>
-</View>
-
 
       <FlatList
         data={erList}
@@ -238,6 +267,7 @@ const ERListScreen = () => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

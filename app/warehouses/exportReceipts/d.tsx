@@ -8,30 +8,30 @@ import {
   Switch,
   ScrollView,
   TouchableOpacity,
-  RefreshControl, // Import RefreshControl
+  RefreshControl,
 } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 import MyButton from "@/components/MyButton";
 import { useRouter } from "expo-router";
 import { useLocalSearchParams } from "expo-router/build/hooks";
-import { detailIR, updateIR, deleteIR } from "@/services/api/IRService";
-import { detailbyIRId } from "@/services/api/IRdetailService";
-import { getWarehouseList } from "@/services/api/warehouseService"; // Import hàm fetchWarehouses
+import { detailES, updateES, deleteES } from "@/services/api/ESService"; // Đổi sang dịch vụ cho phiếu xuất
+import { detailbyESId } from "@/services/api/ESdetailService"; // Đổi sang chi tiết phiếu xuất
+import { getWarehouseList } from "@/services/api/warehouseService";
 import { useToken } from "@/hooks/useToken";
-import Icon from "react-native-vector-icons/FontAwesome"; // Import icon thư viện
+import Icon from "react-native-vector-icons/FontAwesome";
 
-const IRDetails = () => {
-  const [irDetails, setIrDetails] = useState<any>(null);
+const ESDetails = () => {
+  const [esDetails, setEsDetails] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [updatedIR, setUpdatedIR] = useState<any>({
+  const [updatedES, setUpdatedES] = useState<any>({
     id: "",
-    import_date: "",
+    export_date: "",
     warehouse: "",
     is_approved: false,
     employee: "",
-    total_amount: 0,
+    total_value: 0, // Tên trường đã thay đổi
     details: [],
   });
   const [warehouses, setWarehouses] = useState<any[]>([]); // Danh sách kho
@@ -43,68 +43,44 @@ const IRDetails = () => {
   const token = useToken();
   const router = useRouter();
 
-  const fetchIRDetails = async () => {
+  const fetchESDetails = async () => {
     if (!id) return;
     try {
-      const data = await detailIR(Number(id));
+      const data = await detailES(Number(id)); // Sử dụng dịch vụ phiếu xuất
       if (data.success) {
-        setIrDetails(data.data.data);
-        setUpdatedIR({
+        setEsDetails(data.data.data);
+        setUpdatedES({
           id: data.data.data.id,
-          import_date: data.data.data.import_date,
+          export_date: data.data.data.export_date, // Đổi tên trường
           warehouse: data.data.data.warehouse,
           is_approved: data.data.data.is_approved,
           employee: data.data.data.employee,
-          total_amount: data.data.data.total_amount,
+          total_value: data.data.data.total_value, // Thay đổi trường tổng giá trị
           details: data.data.data.details || [],
         });
         setLoading(false);
         setError(null);
       } else {
         Alert.alert("Thông báo lỗi", data.errorMessage);
-        // router.replace("/warehouses/warehouses/list");
-        
       }
-      // if (data.data) {
-      //   setIrDetails(data.data);
-      //   setUpdatedIR({
-      //     id: data.data.id,
-      //     import_date: data.data.import_date,
-      //     warehouse: data.data.warehouse,
-      //     is_approved: data.data.is_approved,
-      //     employee: data.data.employee,
-      //     total_amount: data.data.total_amount,
-      //     details: data.data.details || [],
-      //   });
-      // }
-      // setLoading(false);
-      // setError(null);
     } catch (error: any) {
       setLoading(false);
-      setError("Không thể tải thông tin phiếu nhập. Vui lòng thử lại.");
+      setError("Không thể tải thông tin phiếu xuất. Vui lòng thử lại.");
     }
   };
 
   const fetchWarehousesList = async () => {
     try {
-      const response = await getWarehouseList(); // Gọi API lấy danh sách kho
+      const response = await getWarehouseList();
       if (response.success) {
         const formattedData = response.data.data.map((item: any) => ({
           label: item.warehouse_name,
           value: item.id,
         }));
-        setWarehouses(formattedData); // Đặt danh sách kho vào state
+        setWarehouses(formattedData);
       } else {
         Alert.alert("Thông báo lỗi", response.errorMessage);
-        // router.replace("/warehouses/warehouses/list");
       }
-      // if (response.data) {
-      //   const formattedData = response.data.map((item: any) => ({
-      //     label: item.warehouse_name,
-      //     value: item.id,
-      //   }));
-      //   setWarehouses(formattedData); // Đặt danh sách kho vào state
-      // }
     } catch (error: any) {
       Alert.alert("Lỗi", error);
     }
@@ -113,43 +89,29 @@ const IRDetails = () => {
   const fetchProductDetails = async () => {
     if (!id) return;
     try {
-      const response = await detailbyIRId(Number(id));
-      console.log(
-        "response = await detailbyIRId(Number(id));",
-        response.data.data
-      );
+      const response = await detailbyESId(Number(id)); // Sử dụng API chi tiết phiếu xuất
       if (response.success) {
-        setProductDetails(response.data.data|| []);
+        setProductDetails(response.data.data || []);
       } else {
         Alert.alert("Thông báo lỗi", response.errorMessage);
-        // router.replace("/warehouses/warehouses/list");
       }
-
-      // if (response.data) {
-      //   setProductDetails(response.data || []);
-      // }
     } catch (error: any) {
       Alert.alert("Lỗi", error);
     }
   };
 
-  // useEffect(() => {
-  //   fetchIRDetails();
-  //   fetchWarehousesList(); // Tải danh sách kho khi component mount
-  // }, [id]);
   useEffect(() => {
-    fetchIRDetails();
-    fetchWarehousesList(); // Tải danh sách kho khi component mount
+    fetchESDetails();
+    fetchWarehousesList();
     fetchProductDetails();
   }, []);
 
   const handleUpdate = async () => {
-    if (!updatedIR) return;
+    if (!updatedES) return;
 
     try {
-      // Tìm ID của kho dựa trên tên kho trong danh sách
       const warehouseItem = warehouses.find(
-        (item) => item.label === updatedIR.warehouse
+        (item) => item.label === updatedES.warehouse
       );
       if (!warehouseItem) {
         Alert.alert(
@@ -159,39 +121,33 @@ const IRDetails = () => {
         return;
       }
 
-      // Chuẩn bị dữ liệu cập nhật
-      const updatedIRData = {
-        id: updatedIR.id,
-        import_date: updatedIR.import_date,
-        warehouse: warehouseItem.value, // Sử dụng ID của kho thay vì tên
-        is_approved: updatedIR.is_approved,
-        employee: updatedIR.employee,
-        total_amount: updatedIR.total_amount,
+      const updatedESData = {
+        id: updatedES.id,
+        export_date: updatedES.export_date,
+        warehouse: warehouseItem.value,
+        is_approved: updatedES.is_approved,
+        employee: updatedES.employee,
+        total_value: updatedES.total_value,
       };
 
-      // Gọi API cập nhật
-      const response = await updateIR(irDetails.id, updatedIRData);
+      const response = await updateES(esDetails.id, updatedESData); // Cập nhật phiếu xuất
       if (response.success) {
-        Alert.alert("Thành công", "Cập nhật phiếu nhập thành công!");
-        fetchIRDetails();
+        Alert.alert("Thành công", "Cập nhật phiếu xuất thành công!");
+        fetchESDetails();
       } else {
         Alert.alert("Thông báo lỗi", response.errorMessage);
-        // router.replace("/warehouses/warehouses/list");
       }
-      // Lấy lại dữ liệu sau khi cập nhật
-      // fetchIRDetails();
 
-      // Alert.alert("Cập nhật phiếu nhập thành công!");
       setIsEditing(false);
     } catch (error: any) {
-      Alert.alert("Thông báo lỗi ", error || "Đã xảy ra lỗi.");
+      Alert.alert("Thông báo lỗi", error || "Đã xảy ra lỗi.");
     }
   };
 
   const handleWarehouseChange = (value: any) => {
     const selectedWarehouse = warehouses.find((item) => item.value === value);
     if (selectedWarehouse) {
-      setUpdatedIR((prevState) => ({
+      setUpdatedES((prevState) => ({
         ...prevState,
         warehouse: selectedWarehouse.label, // Cập nhật kho mới bằng tên
       }));
@@ -199,28 +155,24 @@ const IRDetails = () => {
   };
 
   const handleDelete = async () => {
-    if (!irDetails) return;
+    if (!esDetails) return;
     Alert.alert(
-      "Xóa Phiếu Nhập",
-      "Bạn có chắc chắn muốn xóa phiếu nhập này không?",
+      "Xóa Phiếu Xuất",
+      "Bạn có chắc chắn muốn xóa phiếu xuất này không?",
       [
         {
           text: "Xóa",
           onPress: async () => {
             try {
-              const response = await deleteIR(irDetails.id);
+              const response = await deleteES(esDetails.id); // Xóa phiếu xuất
               if (response.success) {
-                Alert.alert("Thành công", "Xóa phiếu nhập thành công!.");
+                Alert.alert("Thành công", "Xóa phiếu xuất thành công!");
               } else {
                 Alert.alert("Thông báo lỗi", response.errorMessage);
               }
-              router.replace("/warehouses/importReceipts/list");
-              Alert.alert("Xóa phiếu nhập thành công!");
+              router.replace("/warehouses/exportReceipts/list");
             } catch (error: any) {
-              Alert.alert(
-                "Lỗi",
-                error || "Xóa phiếu nhập thất bại. Vui lòng thử lại."
-              );
+              Alert.alert("Lỗi", error || "Xóa phiếu xuất thất bại.");
             }
           },
         },
@@ -237,17 +189,15 @@ const IRDetails = () => {
   };
 
   const handleEditDetails = () => {
-    router.push(`/warehouses/importReceipts/importReceiptDetails/${id}`);
+    router.push(`/warehouses/exportReceipts/exportReceiptDetails/${id}`);
   };
 
-  // Hàm xử lý pull-to-refresh
   const onRefresh = async () => {
     setRefreshing(true);
-    // Tải lại dữ liệu
-    await fetchIRDetails();
+    await fetchESDetails();
     await fetchWarehousesList();
     await fetchProductDetails();
-    setRefreshing(false); // Kết thúc trạng thái refreshing
+    setRefreshing(false);
   };
 
   if (error) {
@@ -270,31 +220,31 @@ const IRDetails = () => {
     <ScrollView
       style={styles.container}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> // Thêm RefreshControl
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      <Text style={styles.title}>Chi Tiết Phiếu Nhập</Text>
+      <Text style={styles.title}>Chi Tiết Phiếu Xuất</Text>
 
       <TouchableOpacity
         style={styles.editButton}
-        onPress={() => setIsEditing(true)} // Kích hoạt chế độ chỉnh sửa
+        onPress={() => setIsEditing(true)} // Chỉnh sửa phiếu xuất
       >
         <Icon name="pencil" size={24} color="#007bff" />
       </TouchableOpacity>
 
       <View style={styles.detailContainer}>
-        <Text style={styles.label}>Mã Phiếu Nhập:</Text>
-        <Text style={styles.value}>{irDetails.id}</Text>
+        <Text style={styles.label}>Mã Phiếu Xuất:</Text>
+        <Text style={styles.value}>{esDetails.id}</Text>
       </View>
 
       <View style={styles.detailContainer}>
-        <Text style={styles.label}>Nhân viên nhập:</Text>
-        <Text style={styles.value}>{irDetails.employee}</Text>
+        <Text style={styles.label}>Người xuất:</Text>
+        <Text style={styles.value}>{esDetails.employee}</Text>
       </View>
 
       <View style={styles.detailContainer}>
         <Text style={styles.label}>Ngày lập phiếu:</Text>
-        <Text style={styles.value}>{irDetails.import_date}</Text>
+        <Text style={styles.value}>{esDetails.export_date}</Text>
       </View>
 
       <View style={styles.detailContainer}>
@@ -303,7 +253,7 @@ const IRDetails = () => {
         {isEditing ? (
           <View style={styles.switchWrapper}>
             <Text style={styles.value}>
-              {updatedIR.warehouse || "Không xác định"} {/* Hiển thị tên kho */}
+              {updatedES.warehouse || "Không xác định"}
             </Text>
             <RNPickerSelect
               onValueChange={handleWarehouseChange}
@@ -311,9 +261,9 @@ const IRDetails = () => {
               placeholder={{ label: "Chọn kho...", value: null }}
               style={pickerSelectStyles}
               value={
-                updatedIR.warehouse
+                updatedES.warehouse
                   ? warehouses.find(
-                      (item) => item.label === updatedIR.warehouse
+                      (item) => item.label === updatedES.warehouse
                     )?.value
                   : null
               }
@@ -321,14 +271,14 @@ const IRDetails = () => {
           </View>
         ) : (
           <Text style={styles.value}>
-            {updatedIR.warehouse || "Không xác định"} {/* Hiển thị tên kho */}
+            {updatedES.warehouse || "Không xác định"}
           </Text>
         )}
       </View>
 
       <View style={styles.detailContainer}>
-        <Text style={styles.label}>Tổng tiền:</Text>
-        <Text style={styles.value}>{irDetails.total_amount} đồng</Text>
+        <Text style={styles.label}>Tổng giá trị:</Text>
+        <Text style={styles.value}>{esDetails.total_value} đồng</Text>
       </View>
 
       <View style={styles.detailContainer}>
@@ -336,18 +286,18 @@ const IRDetails = () => {
         {isEditing ? (
           <View style={styles.switchWrapper}>
             <Switch
-              value={updatedIR.is_approved}
+              value={updatedES.is_approved}
               onValueChange={(value) =>
-                setUpdatedIR({ ...updatedIR, is_approved: value })
+                setUpdatedES({ ...updatedES, is_approved: value })
               }
             />
             <Text style={styles.switchLabel}>
-              {updatedIR.is_approved ? "Đã duyệt" : "Chưa duyệt"}
+              {updatedES.is_approved ? "Đã duyệt" : "Chưa duyệt"}
             </Text>
           </View>
         ) : (
           <Text style={styles.value}>
-            {irDetails.is_approved ? "Đã duyệt" : "Chưa duyệt"}
+            {esDetails.is_approved ? "Đã duyệt" : "Chưa duyệt"}
           </Text>
         )}
       </View>
@@ -369,7 +319,7 @@ const IRDetails = () => {
           {productDetails.map((detail: any) => (
             <View key={detail.id} style={styles.productDetail}>
               <Text style={styles.productDetailText}>
-                Tên thuốc: {detail.medicine}
+                Tên sản phẩm: {detail.product_name}
               </Text>
               <Text style={styles.productDetailText}>
                 Số lượng: {detail.quantity}
@@ -394,7 +344,7 @@ const IRDetails = () => {
           />
         </>
       ) : (
-        !irDetails.is_approved && ( // Kiểm tra trạng thái trước khi hiển thị
+        !esDetails.is_approved && (
           <MyButton
             title="Xóa"
             onPress={handleDelete}
@@ -433,139 +383,73 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#f9f9f9", // Màu nền sáng, nhẹ nhàng.
+    backgroundColor: "#f9f9f9",
   },
   title: {
     fontSize: 26,
     fontWeight: "bold",
-    marginBottom: 20,
     textAlign: "center",
-    color: "#1a73e8", // Màu xanh nổi bật.
-  },
-  editButton: {
-    position: "absolute",
-    top: -10,
-    right: -10,
-    zIndex: 10,
-    backgroundColor: "#ffffff",
-    borderRadius: 50,
-    padding: 12,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 3 },
+    marginBottom: 20,
   },
   detailContainer: {
     flexDirection: "row",
-    marginBottom: 15,
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    padding: 10,
-    borderRadius: 8,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-    justifyContent: "space-between", // Đảm bảo label và nội dung không bị chồng lên nhau
+    marginBottom: 10,
   },
   label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333333",
     flex: 1,
+    fontSize: 16,
+    fontWeight: "500",
   },
   value: {
-    fontSize: 16,
-    color: "black",
     flex: 2,
-    textAlign: "center", // Căn giữa văn bản trong ô
+    fontSize: 16,
+    color: "gray",
   },
   switchWrapper: {
-    flex: 2, // Đảm bảo không gian hợp lý
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center", // Căn giữa switch trong ô
   },
   switchLabel: {
-    fontSize: 16,
     marginLeft: 10,
-    color: "#555555",
+    fontSize: 16,
   },
   toggleButton: {
-    marginTop: 20,
-    padding: 12,
-    backgroundColor: "#1a73e8",
-    borderRadius: 10,
+    marginTop: 10,
+    marginBottom: 10,
+    backgroundColor: "#007bff",
+    paddingVertical: 10,
+    borderRadius: 5,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
   },
   toggleButtonText: {
-    color: "#fff",
     fontSize: 16,
-    fontWeight: "bold",
+    color: "#fff",
   },
   productDetailsContainer: {
-    marginTop: 15,
-    backgroundColor: "#ffffff",
-    padding: 15,
-    borderRadius: 8,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
+    marginTop: 20,
+    marginBottom: 20,
   },
   productDetail: {
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    paddingBottom: 10,
+    marginBottom: 15,
   },
   productDetailText: {
-    fontSize: 15,
-    color: "#555555",
+    fontSize: 16,
+    color: "gray",
   },
   saveButton: {
-    backgroundColor: "#34a853", // Xanh lá cây cho hành động thành công.
-    marginTop: 20,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
+    backgroundColor: "#28a745",
   },
   cancelButton: {
-    backgroundColor: "#6c757d",
-    marginTop: 10,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignItems: "center",
-  },
-  updateButton: {
-    backgroundColor: "#1a73e8",
-    marginTop: 20,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignItems: "center",
+    backgroundColor: "#dc3545",
   },
   deleteButton: {
-    backgroundColor: "#e63946", // Đỏ nổi bật cho hành động nguy hiểm.
-    marginTop: 10,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignItems: "center",
+    backgroundColor: "#ffc107",
+  },
+  editButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
   },
 });
 
-export default IRDetails;
+export default ESDetails;

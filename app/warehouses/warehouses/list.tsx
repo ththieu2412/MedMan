@@ -8,6 +8,7 @@ import {
   Button,
   TextInput,
   Switch,
+  Alert,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { getWarehouseList } from "@/services/api/warehouseService"; // API call để lấy danh sách nhà kho
@@ -28,29 +29,40 @@ const WarehouseList = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const data = await getWarehouseList(token);
-      setWarehouses(data.data); // Gán dữ liệu vào state
+      const data = await getWarehouseList();
+      console.log("Data gtruocw  ======: ", data.data);
+      if (data.success) {
+        // if (Array.isArray(data.data)) {
+        setWarehouses(data.data.data);
+        // Alert.alert("Thành công", "Đã load.");
+      } else {
+        Alert.alert("Lỗi", data.errorMessage);
+        // router.replace("/warehouses/warehouses/list");
+      }
+      // Gán dữ liệu vào state
     } catch (error: any) {
-      console.error("Error fetching warehouse list:", error.message);
+      Alert.alert("Lỗi", error || "Không thể lấy danh sách kho.");
     } finally {
       setLoading(false);
     }
   };
 
   // Hàm tìm kiếm kho theo các tham số
-const handleSearch = async () => {
-  // Kiểm tra nếu ít nhất một tham số tìm kiếm đã được nhập
-  if (!address && !isActive) {
-    // Hiển thị thông báo lỗi hoặc không thực hiện tìm kiếm nếu không có tham số tìm kiếm
-    alert("Vui lòng nhập ít nhất một thông tin tìm kiếm (địa chỉ hoặc trạng thái kho).");
-    return; // Dừng hàm nếu không có tham số tìm kiếm
-  }
+  const handleSearch = async () => {
+    // Kiểm tra nếu ít nhất một tham số tìm kiếm đã được nhập
+    if (!address && !isActive) {
+      // Hiển thị thông báo lỗi hoặc không thực hiện tìm kiếm nếu không có tham số tìm kiếm
+      alert(
+        "Vui lòng nhập ít nhất một thông tin tìm kiếm (địa chỉ hoặc trạng thái kho)."
+      );
+      return; // Dừng hàm nếu không có tham số tìm kiếm
+    }
 
-  setLoading(true);
-  const result = await searchWarehouses(token, address, isActive ? "true" : "false");
-  setLoading(false);
-  setWarehouses(result || []); // Cập nhật danh sách kho
-};
+    setLoading(true);
+    const result = await searchWarehouses(address, isActive ? "true" : "false");
+    setLoading(false);
+    setWarehouses(result.data.data || []); // Cập nhật danh sách kho
+  };
 
   // Hàm lấy lại tất cả các kho (xóa các tham số tìm kiếm và tải lại danh sách)
   const handleReset = () => {
@@ -70,6 +82,8 @@ const handleSearch = async () => {
       fetchData(); // Fetch lại dữ liệu mỗi khi màn hình được focus
     }, [])
   );
+
+  console.log("Dữ liệu warehoues: ", warehouses);
 
   // Render mỗi item trong danh sách
   const renderItem = ({ item }: { item: Warehouse }) => (
@@ -97,14 +111,11 @@ const handleSearch = async () => {
           value={address}
           onChangeText={setAddress}
         />
-        
+
         {/* Switch để tìm kiếm theo trạng thái kho */}
         <View style={styles.switchContainer}>
           <Text>Trạng thái kho</Text>
-          <Switch
-            value={isActive}
-            onValueChange={setIsActive}
-          />
+          <Switch value={isActive} onValueChange={setIsActive} />
         </View>
 
         <Button title="Tìm kiếm" onPress={handleSearch} />
@@ -118,9 +129,9 @@ const handleSearch = async () => {
       {/* Nút Thêm Kho */}
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => router.push("warehouses/warehouses/add")}
+        onPress={() => router.push("/warehouses/warehouses/add")}
       >
-        <Text style={styles.addButtonText}>+ Thêm Kho</Text>
+        <Text style={styles.addButtonText}>Thêm Kho</Text>
       </TouchableOpacity>
 
       {/* Danh sách nhà kho */}

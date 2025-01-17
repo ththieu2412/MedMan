@@ -3,7 +3,6 @@ import api from "./apiConfig";
 
 // Hàm lấy báo cáo nhập hàng
 export const ReportImportReceipt = async (
-  token: string,
   startDate: string,
   endDate: string,
 ) => {
@@ -29,17 +28,13 @@ export const ReportImportReceipt = async (
     console.log("Response from API:", response);
 
     // Trả về dữ liệu nhận được từ API
-    return response.data;  // Giả sử API trả về data trong trường `data`
+    return { success: true, data: response.data};
   } catch (error: any) {
-    // Nếu có lỗi từ phản hồi, log và trả về lỗi
-    if (error.response) {
-      console.error("Error response:", error.response.data);
-      return error.response.data;  // Trả về thông tin lỗi từ server
-    } else {
-      // Nếu không có phản hồi từ server, log và trả về lỗi chung
-      console.error("Error:", error.message);
-      return { errorMessage: error.message };
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };
 export const ReportEmployeeActivity = async (
@@ -65,17 +60,13 @@ export const ReportEmployeeActivity = async (
     console.log("Response from API:", response);
 
     // Trả về dữ liệu nhận được từ API
-    return response.data;  // Giả sử API trả về data trong trường `data`
+    return { success: true, data: response.data};
   } catch (error: any) {
-    // Nếu có lỗi từ phản hồi, log và trả về lỗi
-    if (error.response) {
-      console.error("Error response:", error.response.data);
-      return error.response.data;  // Trả về thông tin lỗi từ server
-    } else {
-      // Nếu không có phản hồi từ server, log và trả về lỗi chung
-      console.error("Error:", error.message);
-      return { errorMessage: error.message };
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };
 export const ReportInventory = async (
@@ -94,16 +85,12 @@ export const ReportInventory = async (
     console.log("Response from API:", response);
 
     // Trả về dữ liệu nhận được từ API
-    return response.data;  // Giả sử API trả về data trong trường `data`
+    return { success: true, data: response.data};
   } catch (error: any) {
-    // Nếu có lỗi từ phản hồi, log và trả về lỗi
-    if (error.response) {
-      console.error("Error response:", error.response.data);
-      return error.response.data;  // Trả về thông tin lỗi từ server
-    } else {
-      // Nếu không có phản hồi từ server, log và trả về lỗi chung
-      console.error("Error:", error.message);
-      return { errorMessage: error.message };
+     if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };

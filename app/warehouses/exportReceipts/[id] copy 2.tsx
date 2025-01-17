@@ -24,13 +24,13 @@ import {
 } from "@/services/api/index";
 import { useToken } from "@/hooks/useToken";
 import { Ionicons } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker"; // Import RNPicker
+import { Picker } from "@react-native-picker/picker";
 
 const ExportReceiptDetails = () => {
   const [exportDetails, setExportDetails] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false); // Chế độ chỉnh sửa
   const [isProductEditable, setIsProductEditable] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [newMedicine, setNewMedicine] = useState<string>("");
@@ -42,7 +42,6 @@ const ExportReceiptDetails = () => {
   const router = useRouter();
   const [medicines, setMedicines] = useState<any[]>([]);
 
-  // Fetch export details
   const fetchExportDetails = async () => {
     if (!Number(id)) {
       setError("Không tìm thấy mã phiếu xuất.");
@@ -54,8 +53,6 @@ const ExportReceiptDetails = () => {
       if (data?.data?.id) {
         setExportDetails(data.data);
         setError(null);
-
-        // Gọi fetchAdditionalDetails ngay sau khi exportDetails được cập nhật
         await fetchAdditionalDetails(data.data);
       } else {
         setError("Dữ liệu phiếu xuất không hợp lệ.");
@@ -69,7 +66,6 @@ const ExportReceiptDetails = () => {
 
   const fetchAdditionalDetails = async (exportData: any) => {
     try {
-      // Lấy thông tin nhân viên
       if (exportData.employee) {
         const employeeData = await employeeDetail(exportData.employee);
         if (employeeData?.full_name) {
@@ -78,8 +74,6 @@ const ExportReceiptDetails = () => {
           setEmployeeName("Không xác định");
         }
       }
-
-      // Lấy thông tin kho
       if (exportData?.warehouse) {
         const warehouseData = await detailWarehouse(exportData.warehouse);
         if (warehouseData?.data?.data?.warehouse_name) {
@@ -97,7 +91,6 @@ const ExportReceiptDetails = () => {
     }
   };
 
-  // Fetch medicines list
   const fetchMedicines = async () => {
     try {
       const response = await getMedicineList();
@@ -123,20 +116,18 @@ const ExportReceiptDetails = () => {
     }
   };
 
-  // Refresh data
   const onRefresh = async () => {
     setLoading(true);
     await fetchExportDetails();
-
     setLoading(false);
   };
+
   const toggleApproveStatus = async (value: boolean) => {
     try {
       const updatedData = {
         ...exportDetails,
         is_approved: value,
       };
-      // Giả sử đây là API updateERAndDetails
       await updateERAndDetails(id, updatedData); // Gọi API để cập nhật trạng thái
       setExportDetails(updatedData);
     } catch (error: any) {
@@ -147,7 +138,6 @@ const ExportReceiptDetails = () => {
     }
   };
 
-  // Add product to export receipt
   const handleAddProduct = () => {
     if (!newMedicine) {
       Alert.alert("Lỗi", "Vui lòng chọn thuốc.");
@@ -167,6 +157,7 @@ const ExportReceiptDetails = () => {
     }));
     setModalVisible(false);
   };
+
   const handleDelete = async () => {
     Alert.alert(
       "Xác nhận",
@@ -181,9 +172,9 @@ const ExportReceiptDetails = () => {
           style: "destructive",
           onPress: async () => {
             try {
-              await deleteER(Number(id)); // Giả sử deleteER là API xóa phiếu xuất
+              await deleteER(Number(id)); // Gọi API xóa phiếu xuất
               Alert.alert("Thành công", "Phiếu xuất đã được xóa.");
-              router.replace("/warehouses/exportReceipts/list"); // Điều hướng người dùng sau khi xóa
+              router.replace("/warehouses/exportReceipts/list"); // Điều hướng sau khi xóa
             } catch (error: any) {
               Alert.alert(
                 "Lỗi",
@@ -196,12 +187,9 @@ const ExportReceiptDetails = () => {
       { cancelable: true }
     );
   };
-  // Fetch data when component is mounted
+
   useEffect(() => {
     fetchExportDetails();
-    // if (exportDetails) {
-    //   fetchAdditionalDetails();
-    // }
   }, []);
 
   useEffect(() => {
@@ -237,9 +225,7 @@ const ExportReceiptDetails = () => {
         <Text style={styles.title}>Chi Tiết Phiếu Xuất</Text>
         <TouchableOpacity
           style={styles.editApproveButton}
-          onPress={() => {
-            setIsEditing(!isEditing); // Bật/tắt chế độ chỉnh sửa
-          }}
+          onPress={() => setIsEditing(!isEditing)} // Bật/tắt chế độ chỉnh sửa
         >
           <Ionicons
             name={isEditing ? "checkmark-done-circle" : "create"}
@@ -280,255 +266,149 @@ const ExportReceiptDetails = () => {
             </View>
             <View style={styles.detailContainer}>
               <Text style={styles.label}>Trạng thái:</Text>
+              {/* Chỉ cho phép chỉnh sửa khi isEditing = true */}
               <Switch
                 value={exportDetails.is_approved}
                 onValueChange={toggleApproveStatus}
                 trackColor={{ false: "#767577", true: "#81b0ff" }}
                 thumbColor={exportDetails.is_approved ? "#f5dd4b" : "#f4f3f4"}
+                disabled={!isEditing} // Disable khi không chỉnh sửa
               />
               <Text style={styles.value}>
                 {exportDetails.is_approved ? "Duyệt" : "Chưa duyệt"}
               </Text>
             </View>
-            {/* Product List */}
-            <View>
-              {exportDetails.details.map((detail: any, index: number) => (
-                <View key={index} style={styles.productDetail}>
-                  <Text style={styles.productDetailText}>
-                    Thuốc: {detail.medicine_name} - Số lượng: {detail.quantity}
-                  </Text>
+
+            {/* Chỉnh sửa số lượng thuốc */}
+            {isEditing && (
+              <View>
+                <Text style={styles.label}>Số Lượng:</Text>
+                <TextInput
+                  style={styles.input}
+                  value={newQuantity.toString()}
+                  keyboardType="numeric"
+                  onChangeText={(text) => setNewQuantity(Number(text))}
+                />
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => setModalVisible(true)}
+            >
+              <Text style={styles.buttonText}>Thêm Thuốc</Text>
+            </TouchableOpacity>
+
+            {/* Modal để thêm thuốc */}
+            <Modal
+              visible={modalVisible}
+              onRequestClose={() => setModalVisible(false)}
+              transparent={true}
+              animationType="slide"
+            >
+              <View style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                  <Picker
+                    selectedValue={newMedicine}
+                    onValueChange={(itemValue) => setNewMedicine(itemValue)}
+                  >
+                    {medicines.map((medicine) => (
+                      <Picker.Item
+                        key={medicine.value}
+                        label={medicine.label}
+                        value={medicine.value}
+                      />
+                    ))}
+                  </Picker>
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleAddProduct}
+                  >
+                    <Text style={styles.buttonText}>Thêm</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setModalVisible(false)}
+                  >
+                    <Text style={styles.buttonText}>Hủy</Text>
+                  </TouchableOpacity>
                 </View>
-              ))}
-            </View>
+              </View>
+            </Modal>
           </>
         )}
       </ScrollView>
 
-      {/* Add Product Button */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.addProductButton}
-          onPress={() => setModalVisible(true)}
-        >
-          <Ionicons name="add-circle" size={70} color="#1a73e8" />
-        </TouchableOpacity>
-
-        {/* Delete Button */}
-        {!exportDetails?.is_approved && (
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>Xóa Phiếu Xuất</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Modal to Add Product */}
-      <Modal
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Thêm Sản Phẩm</Text>
-            <Picker
-              selectedValue={newMedicine}
-              onValueChange={(itemValue) => setNewMedicine(itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="Chọn thuốc" value="" />
-              {medicines.map((medicine) => (
-                <Picker.Item
-                  key={medicine.value}
-                  label={medicine.label}
-                  value={medicine.value}
-                />
-              ))}
-            </Picker>
-            <TextInput
-              style={styles.input}
-              value={String(newQuantity)}
-              onChangeText={(text) => setNewQuantity(Number(text))}
-              keyboardType="numeric"
-              placeholder="Nhập số lượng"
-            />
-            <MyButton
-              title="Thêm"
-              onPress={handleAddProduct}
-              buttonStyle={styles.addButton}
-            />
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text style={styles.closeModal}>Đóng</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* Xóa phiếu xuất */}
+      <MyButton title="Xóa Phiếu Xuất" onPress={handleDelete} />
     </View>
   );
+
 };
 
 const styles = StyleSheet.create({
-  // container: {
-  //   flex: 1,
-  //   padding: 20,
-  //   backgroundColor: "#f9f9f9",
-  // },
+  container: {
+    flex: 1,
+    padding: 10,
+  },
   title: {
-    fontSize: 26,
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 20,
-    textAlign: "center",
-    color: "#1a73e8",
   },
-  picker: {
-    height: 50,
-    width: "100%",
-  },
-  input: {
-    padding: 8,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    marginTop: 5,
-    fontSize: 16,
+  scrollView: {
+    flex: 1,
   },
   detailContainer: {
     flexDirection: "row",
-    marginBottom: 15,
-    justifyContent: "space-between",
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  value: {
-    fontSize: 16,
-    fontWeight: "400",
-  },
-  toggleButton: {
-    marginVertical: 10,
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: "#1a73e8",
-    alignItems: "center",
-  },
-  toggleButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  productDetailsContainer: {
-    marginTop: 10,
-  },
-  productDetail: {
-    padding: 10,
-    backgroundColor: "#fff",
-    borderRadius: 5,
     marginBottom: 10,
   },
-  productDetailText: {
-    fontSize: 14,
+  label: {
+    fontWeight: "bold",
+    width: "30%",
   },
-  updateButton: {
-    backgroundColor: "#4caf50",
-    marginTop: 20,
+  value: {
+    width: "70%",
   },
-  // deleteButton: {
-  //   backgroundColor: "#d32f2f",
-  //   marginTop: 20,
-  //   paddingVertical: 15,
-  //   paddingHorizontal: 25,
-  //   borderRadius: 10,
-  //   alignItems: "center",
-  //   justifyContent: "center",
-  // },
-  // deleteButtonText: {
-  //   color: "#fff",
-  //   fontWeight: "600",
-  //   fontSize: 16,
-  // },
-  editButton: {
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    marginBottom: 10,
+  },
+  button: {
+    backgroundColor: "#1a73e8",
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  cancelButton: {
+    backgroundColor: "#f44336",
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  editApproveButton: {
     alignSelf: "flex-end",
-    marginBottom: 15,
+    marginBottom: 10,
   },
-  // addProductButton: {
-  //   position: "absolute",
-  //   right: -10,
-  //   bottom: -150,
-  // },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-    width: "80%",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  addButton: {
-    backgroundColor: "#4caf50",
-    marginTop: 10,
-  },
-  closeModal: {
-    marginTop: 20,
-    textAlign: "center",
-    color: "#1a73e8",
-    fontWeight: "600",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#f9f9f9",
-  },
-  scrollView: {
-    flex: 1,
-    padding: 20,
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
     backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#ccc",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  deleteButton: {
-    backgroundColor: "#d32f2f",
-    marginTop: 10,
-    paddingVertical: 15,
-    paddingHorizontal: 25,
+    padding: 20,
     borderRadius: 10,
+    width: 300,
     alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
-  deleteButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  addProductButton: {
-    alignSelf: "center",
-    marginBottom: 10,
-  },
-  editApproveButton: {
-    position: "absolute",
-    top: 20,
-    right: 20,
-    padding: 10,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
 });
 

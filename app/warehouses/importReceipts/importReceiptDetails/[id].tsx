@@ -29,6 +29,7 @@ const IRDetailEdit = () => {
   const { id } = useLocalSearchParams();
   const token = useToken();
   const router = useRouter();
+  const [initialProductDetails, setInitialProductDetails] = useState<any[]>([]);
 
   const [productDetails, setProductDetails] = useState<any[]>([]);
   const [medicineOptions, setMedicineOptions] = useState<any[]>([]); // Danh sách thuốc
@@ -46,24 +47,63 @@ const IRDetailEdit = () => {
   const fetchProductDetails = async () => {
     if (!id) return;
     try {
-      const response = await detailbyIRId(token, id);
-      const dataWithIds = response.data.map((item, index) => ({
-        ...item,
-        id: index + 1, // Tạo ID tạm thời cho sản phẩm
-      }));
-      setProductDetails(dataWithIds); // Cập nhật
-    } catch (error) {
+      const response = await detailbyIRId(Number(id));
+      if (response.success) {
+        const dataWithIds = response.data.data.map((item, index) => ({
+          ...item,
+          id: index + 1, // Tạo ID tạm thời cho sản phẩm
+        }));
+        setProductDetails(dataWithIds);
+        setInitialProductDetails(dataWithIds); // Lưu trạng thái ban đầu
+      } else {
+        Alert.alert("Thông báo lỗi", response.errorMessage);
+      }
+    } catch (error: any) {
       Alert.alert(
         "Thông báo lỗi",
-        "Không thể tải chi tiết sản phẩm. Vui lòng thử lại."
+        error || "Không thể tải chi tiết sản phẩm. Vui lòng thử lại."
       );
     }
   };
+  const hasChanges = () => {
+    return (
+      JSON.stringify(productDetails) !== JSON.stringify(initialProductDetails)
+    );
+  };
+const handleExit = () => {
+  if (hasChanges()) {
+    Alert.alert(
+      "Xác nhận thoát",
+      "Bạn có chắc muốn thoát không? Các thay đổi sẽ không được lưu.",
+      [
+        { text: "Hủy", style: "cancel" },
+        { text: "Thoát", onPress: () => router.back() }, // Hoặc hành động thoát khác
+      ]
+    );
+  } else {
+    router.back(); // Thoát nếu không có thay đổi
+  }
+};
 
   // Hàm fetch danh sách thuốc
   const fetchMedicineOptions = async () => {
     try {
-      const response = await getMedicineList(token);
+      const response = await getMedicineList();
+      // console.log("thuốc nè", response.data);
+      // if (response.success) {
+      //   if (response.data && Array.isArray(response.data)) {
+      //     console.log("thuốc nè", response.data);
+      //     const options = response.data.datamap((medicine) => ({
+      //       label: medicine.medicine_name, // Đảm bảo lấy đúng tên thuốc
+      //       value: medicine.id, // Lấy ID làm giá trị cho mỗi item
+      //       price: medicine.sale_price,
+      //     }));
+      //     setMedicineOptions(options);
+      //   }
+      // } else {
+      //   Alert.alert("Thông báo lỗi", response.errorMessage);
+      //   // router.replace("/warehouses/warehouses/list");
+      // }
       if (response.data && Array.isArray(response.data)) {
         const options = response.data.map((medicine) => ({
           label: medicine.medicine_name, // Đảm bảo lấy đúng tên thuốc
@@ -76,11 +116,10 @@ const IRDetailEdit = () => {
           "Không có dữ liệu thuốc hoặc dữ liệu không đúng định dạng."
         );
       }
-    } catch (error) {
-      console.error("Lỗi khi tải danh sách thuốc:", error);
+    } catch (error: any) {
       Alert.alert(
         "Thông báo lỗi",
-        "Không thể tải danh sách thuốc. Vui lòng thử lại."
+        error || "Không thể tải danh sách thuốc. Vui lòng thử lại."
       );
     }
   };
@@ -153,17 +192,28 @@ const IRDetailEdit = () => {
       console.log("updatedProducts", updatedProducts);
 
       // Gọi API một lần để cập nhật tất cả sản phẩm
-      const response = await updatebyIRId(token, id, updatedProducts);
-      console.log("Chi tiết phản hồi:", response);
+      const response = await updatebyIRId(id, updatedProducts);
 
-      if (response.status === "success") {
-        Alert.alert("Cập nhật tất cả sản phẩm thành công!");
+      console.log("Chi tiết phản hồi:", response);
+      if (response.success) {
+        Alert.alert("Thành công", "Cập nhật tất cả sản phẩm thành công!");
       } else {
-        Alert.alert("Đã xảy ra lỗi khi cập nhật sản phẩm.");
+        Alert.alert(
+          "Thông báo lỗi",
+          response.errorMessage || "Đã xảy ra lỗi khi cập nhật sản phẩm."
+        );
+        // router.replace("/warehouses/warehouses/list");
       }
-    } catch (error) {
-      console.error("Lỗi khi cập nhật sản phẩm:", error);
-      Alert.alert("Cập nhật sản phẩm thất bại. Vui lòng thử lại.");
+      // if (response.status === "success") {
+      //   Alert.alert("Cập nhật tất cả sản phẩm thành công!");
+      // } else {
+      //   Alert.alert("Đã xảy ra lỗi khi cập nhật sản phẩm.");
+      // }
+    } catch (error: any) {
+      Alert.alert(
+        "Lỗi",
+        error || "Cập nhật sản phẩm thất bại. Vui lòng thử lại."
+      );
     }
   };
 
@@ -231,6 +281,7 @@ const IRDetailEdit = () => {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
+          
           <Text style={styles.title}>Chỉnh Sửa Chi Tiết Sản Phẩm</Text>
           <FlatList
             data={productDetails}
