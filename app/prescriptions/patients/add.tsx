@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,71 +8,106 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import Header from "@/components/Profile/Header";
-import { fontSize, spacing } from "@/constants/dimensions";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import CustomInput from "@/components/CustomInput";
-import Fontisto from "@expo/vector-icons/Fontisto";
-import AntDesign from "@expo/vector-icons/build/AntDesign";
-import Feather from "@expo/vector-icons/build/Feather";
-import FontAwesome6 from "@expo/vector-icons/build/FontAwesome6";
-import MyButton from "@/components/MyButton";
 import { useRouter } from "expo-router";
-import { Picker } from "@react-native-picker/picker";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { format } from "date-fns";
 import * as ImagePicker from "expo-image-picker";
-import MaterialCommunityIcons from "@expo/vector-icons/build/MaterialCommunityIcons";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { Picker } from "@react-native-picker/picker";
+import Header from "@/components/Profile/Header";
+import CustomInput from "@/components/CustomInput";
+import MyButton from "@/components/MyButton";
+import { fontSize, spacing } from "@/constants/dimensions";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
+import { createPatient } from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
 
-export default function SettingScreen() {
-  const [image, setImage] = useState(null);
-  const [gender, setGender] = useState("Nam");
-  const [role, setRole] = useState("Nhân viên");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const [cccd, setCccd] = useState("");
-  const [address, setAddress] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const SettingScreen = () => {
+  const [profile, setProfile] = useState({
+    image: null,
+    full_name: "",
+    gender: 0,
+    date_of_birth: "",
+    id_card: "",
+    address: "",
+    phone_number: "",
+    email: "",
+  });
+
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const router = useRouter();
+  const [employee, setEmployee] = useState<string | null>(null);
 
-  // Hàm xử lý khi nhấn nút sửa thông tin
-  const handleEdit = () => {
+  const router = useRouter();
+  const user = useAuth();
+
+  useEffect(() => {
+    if (user.user?.employee_id) {
+      setEmployee(user.user.employee_id);
+    }
+  }, [user]);
+
+  const handleEdit = useCallback(async () => {
+    if (
+      !profile.address ||
+      !profile.date_of_birth ||
+      !profile.email ||
+      !profile.full_name ||
+      !profile.id_card ||
+      !profile.phone_number ||
+      !profile.gender
+    ) {
+      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
     Alert.alert("Xác nhận", "Bạn có muốn tạo nhân viên mới?", [
       {
         text: "Đồng ý",
-        onPress: () => {
-          console.log("Nhân viên đã được tạo!");
-          console.log(role);
-          router.push(`/(tabs)/patients`);
+        onPress: async () => {
+          try {
+            console.log("Profile Patient: ", profile);
+            const response = await createPatient({
+              ...profile,
+              employee,
+            });
+            console.log(response);
+            if (response.success) {
+              Alert.alert("Thông báo", "Thêm bệnh nhân thành công");
+              console.log("Bệnh nhân đã được tạo!");
+              router.push(`/(tabs)/patients`);
+            } else {
+              Alert.alert("Lỗi", response.errorMessage);
+            }
+          } catch (error) {
+            // console.error("Lỗi khi tạo nhân viên:", error);
+            Alert.alert("Lỗi", "Có lỗi xảy ra khi tạo bệnh nhân.");
+          }
         },
       },
-      {
-        text: "Hủy",
-        style: "cancel",
-      },
+      { text: "Hủy", style: "cancel" },
     ]);
+  }, [profile, employee]);
+
+  const handleFieldChange = (field) => (value) => {
+    setProfile((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Hiển thị modal chọn ngày tháng
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
-  };
-
-  const hideDatePicker = () => {
-    setDatePickerVisibility(false);
-  };
+  const showDatePicker = () => setDatePickerVisibility(true);
+  const hideDatePicker = () => setDatePickerVisibility(false);
 
   const handleDateConfirm = (date) => {
-    setDateOfBirth(format(date, "dd/MM/yyyy")); // Định dạng ngày tháng
+    setProfile((prev) => ({
+      ...prev,
+      date_of_birth: format(date, "yyyy-MM-dd"),
+    }));
     hideDatePicker();
   };
 
   const handleChoosePhoto = async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permissionResult.granted === false) {
+    if (!permissionResult.granted) {
       Alert.alert(
         "Permission required",
         "You need to grant media library permissions to select a photo."
@@ -87,14 +122,13 @@ export default function SettingScreen() {
     });
 
     if (!result.canceled) {
-      console.log("Ảnh đã chọn:", result.uri);
-      setImage({ uri: result.uri });
+      setProfile((prev) => ({ ...prev, image: { uri: result.uri } }));
     }
   };
 
   const handleTakePhoto = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    if (permissionResult.granted === false) {
+    if (!permissionResult.granted) {
       Alert.alert(
         "Permission required",
         "You need to grant camera permissions to take a photo."
@@ -108,7 +142,7 @@ export default function SettingScreen() {
     });
 
     if (!result.canceled) {
-      setImage({ uri: result.uri });
+      setProfile((prev) => ({ ...prev, image: { uri: result.uri } }));
     }
   };
 
@@ -117,18 +151,9 @@ export default function SettingScreen() {
       "Chọn phương thức",
       "Bạn muốn chọn ảnh từ thư viện hay chụp ảnh mới?",
       [
-        {
-          text: "Chọn từ thư viện",
-          onPress: handleChoosePhoto,
-        },
-        {
-          text: "Chụp ảnh",
-          onPress: handleTakePhoto,
-        },
-        {
-          text: "Hủy",
-          style: "cancel",
-        },
+        { text: "Chọn từ thư viện", onPress: handleChoosePhoto },
+        { text: "Chụp ảnh", onPress: handleTakePhoto },
+        { text: "Hủy", style: "cancel" },
       ]
     );
   };
@@ -140,7 +165,11 @@ export default function SettingScreen() {
     >
       <View style={styles.profileImageContainer}>
         <Image
-          source={image ? image : require("@/assets/images/avatar/default.png")}
+          source={
+            profile.image
+              ? profile.image
+              : require("@/assets/images/avatar/default.png")
+          }
           style={styles.profileImage}
         />
         <TouchableOpacity
@@ -156,20 +185,18 @@ export default function SettingScreen() {
           label="Họ và tên"
           placeholder="Nguyễn Văn A"
           icon={<AntDesign name="user" size={24} color="black" />}
-          onChangeText={(text) => setCccd(text)}
-          type={""}
+          onChangeText={handleFieldChange("full_name")}
         />
-
         <Text style={styles.inputLabel}>Giới tính</Text>
         <View style={styles.inputRow}>
           <FontAwesome name="transgender" size={24} color="black" />
           <Picker
-            selectedValue={gender}
-            onValueChange={(itemValue) => setGender(itemValue)}
+            selectedValue={profile.gender === 1 ? "Nam" : "Nữ"}
+            onValueChange={handleFieldChange("gender")}
             style={styles.picker}
           >
-            <Picker.Item label="Nam" value="Nam" />
-            <Picker.Item label="Nữ" value="Nữ" />
+            <Picker.Item label="Nam" value="1" />
+            <Picker.Item label="Nữ" value="0" />
           </Picker>
         </View>
 
@@ -177,7 +204,7 @@ export default function SettingScreen() {
         <TouchableOpacity style={styles.inputRow} onPress={showDatePicker}>
           <FontAwesome name="birthday-cake" size={24} color="black" />
           <Text style={styles.textInput}>
-            {dateOfBirth ? dateOfBirth : "Chọn ngày"}
+            {profile.date_of_birth || "Chọn ngày"}
           </Text>
         </TouchableOpacity>
 
@@ -185,42 +212,25 @@ export default function SettingScreen() {
           label="CCCD"
           placeholder="0802xxxxxxxx"
           icon={<AntDesign name="idcard" size={24} color="black" />}
-          onChangeText={(text) => setCccd(text)}
-          type={""}
+          onChangeText={handleFieldChange("id_card")}
         />
         <CustomInput
           label="Địa chỉ"
           placeholder="789 Pham Ngoc Thach St, Hanoi, Vietnam"
           icon={<FontAwesome6 name="address-book" size={24} color="black" />}
-          onChangeText={(text) => setAddress(text)}
-          type={""}
+          onChangeText={handleFieldChange("address")}
         />
         <CustomInput
           label="SĐT"
           placeholder="0918xxxxxx"
           icon={<Feather name="phone" size={24} color="black" />}
-          onChangeText={(text) => setPhoneNumber(text)}
-          type={""}
+          onChangeText={handleFieldChange("phone_number")}
         />
         <CustomInput
           label="Email"
           placeholder="xxx@gmail.com"
-          icon={<Fontisto name="email" size={24} color="black" />}
-          onChangeText={(text) => setEmail(text)}
-          type={""}
-        />
-        <CustomInput
-          label="Mức hưởng bảo hiểm"
-          placeholder="0.x"
-          icon={
-            <MaterialCommunityIcons
-              name="mother-heart"
-              size={24}
-              color="black"
-            />
-          }
-          onChangeText={(text) => setEmail(text)}
-          type={""}
+          icon={<FontAwesome name="envelope" size={24} color="black" />}
+          onChangeText={handleFieldChange("email")}
         />
       </View>
 
@@ -230,7 +240,6 @@ export default function SettingScreen() {
         buttonStyle={{ backgroundColor: "green", marginBottom: spacing.md }}
       />
 
-      {/* Modal chọn ngày */}
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="date"
@@ -239,13 +248,10 @@ export default function SettingScreen() {
       />
     </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: spacing.md,
-  },
+  container: { flex: 1, padding: spacing.md },
   profileImageContainer: {
     justifyContent: "center",
     alignItems: "center",
@@ -268,9 +274,7 @@ const styles = StyleSheet.create({
     marginTop: -18,
     marginLeft: 50,
   },
-  inputTextFieldContainer: {
-    marginTop: spacing.sm,
-  },
+  inputTextFieldContainer: { marginTop: spacing.sm },
   inputLabel: {
     fontSize: fontSize.md,
     fontWeight: "bold",
@@ -285,14 +289,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: spacing.xs,
   },
-  picker: {
-    flex: 1,
-    marginLeft: spacing.sm,
-    color: "#cccccc",
-  },
-  textInput: {
-    flex: 1,
-    marginLeft: spacing.sm,
-    fontSize: fontSize.md,
-  },
+  picker: { flex: 1, marginLeft: spacing.sm, color: "#cccccc" },
+  textInput: { flex: 1, marginLeft: spacing.sm, fontSize: fontSize.md },
 });
+
+export default SettingScreen;

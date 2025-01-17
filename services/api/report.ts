@@ -94,3 +94,19 @@ export const ReportInventory = async (
     return { success: false, data: "Có lỗi xảy ra"};
   }
 };
+
+export const ReportPatient = async (year: number, month: number) => {
+  try {
+    const response = await api.get(`/reports/patient-report/?year=${year}&month=${month}`); // Gọi API với URL đã được sửa
+    return { success: true, data: response.data };  
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      // Xử lý lỗi trả về từ API
+      const errorMessage = error.response.data.errorMessage || "Unknown error occurred.";
+      return { success: false, errorMessage };
+    }
+    // Trả về lỗi mặc định nếu không có thông tin lỗi cụ thể
+    return { success: false, errorMessage: "Có lỗi xảy ra khi thêm thuốc." };
+  }
+};
+

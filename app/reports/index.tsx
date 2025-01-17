@@ -37,9 +37,16 @@ const IndexScreen = () => {
 
       <TouchableOpacity
         style={styles.button}
+        onPress={() => navigateToReport("reportPatient")}
+      >
+        <Text style={styles.buttonText}>Báo Cáo Bệnh Nhân</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
         onPress={() => navigateToReport("reportSales")}
       >
-        <Text style={styles.buttonText}>Báo Cáo Doanh Số</Text>{" "}
+        <Text style={styles.buttonText}>Báo Cáo Doanh Số</Text>
         {/* Tùy chỉnh theo báo cáo thứ 4 */}
       </TouchableOpacity>
     </View>

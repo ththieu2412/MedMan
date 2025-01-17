@@ -23,6 +23,7 @@ import {
   PatientDetail,
   UpdatePatient,
 } from "@/services/api/patientService";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function SettingScreen() {
   const { id } = useLocalSearchParams();
@@ -30,8 +31,8 @@ export default function SettingScreen() {
   const [formData, setFormData] = useState({
     image: null,
     full_name: "",
-    gender: false,
-    dateOfBirth: "",
+    gender: "Nam",
+    date_of_birth: "",
     id_card: "",
     address: "",
     phoneNumber: "",
@@ -51,8 +52,8 @@ export default function SettingScreen() {
           setFormData({
             image: null,
             full_name: response.data.full_name,
-            gender: response.data.gender || false,
-            dateOfBirth: response.data.date_of_birth,
+            gender: response.data.gender === false ? "Nữ" : "Nam",
+            date_of_birth: response.data.date_of_birth,
             id_card: response.data.id_card || "",
             address: response.data.address || "",
             phoneNumber: response.data.phone_number || "",
@@ -76,7 +77,7 @@ export default function SettingScreen() {
   };
 
   const handleDateConfirm = (date) => {
-    handleFieldChange("dateOfBirth", format(date, "dd/MM/yyyy"));
+    handleFieldChange("date_of_birth", format(date, "dd/MM/yyyy"));
     setDatePickerVisibility(false);
   };
 
@@ -135,7 +136,7 @@ export default function SettingScreen() {
     Alert.alert("Xác nhận", "Bạn có muốn lưu thông tin đã chỉnh sửa?", [
       {
         text: "Đồng ý",
-        onPress: save, // Gọi hàm save trực tiếp
+        onPress: save,
       },
       {
         text: "Hủy",
@@ -147,10 +148,6 @@ export default function SettingScreen() {
   const save = async () => {
     try {
       const updateData = {
-        full_name: formData.full_name,
-        gender: formData.gender,
-        date_of_birth: formData.dateOfBirth,
-        id_card: formData.id_card,
         address: formData.address,
         phone_number: formData.phoneNumber,
         email: formData.email,
@@ -179,10 +176,10 @@ export default function SettingScreen() {
           text: "Xóa",
           onPress: async () => {
             try {
-              const response = await DeletePatient(Number(id)); // Delete the patient
+              const response = await DeletePatient(Number(id));
               if (response.success) {
                 Alert.alert("Thông báo", "Bệnh nhân đã được xóa thành công!");
-                router.replace("/(tabs)/patients"); // Redirect to the patients list
+                router.replace("/(tabs)/patients");
               } else {
                 Alert.alert(
                   "Lỗi",
@@ -232,27 +229,27 @@ export default function SettingScreen() {
       <View style={styles.inputTextFieldContainer}>
         <CustomInput
           label="ID_card"
-          placeholder="Nguyễn Văn A"
+          placeholder="02xxxxxx"
           icon={<FontAwesome name="user" size={24} color="black" />}
           onChangeText={(text) => handleFieldChange("cccd", text)}
           text={formData.id_card}
+          type={""}
+          edit={false}
         />
-        <Text style={styles.inputLabel}>Giới tính</Text>
-        <Picker
-          selectedValue={formData.gender ? "true" : "false"}
-          onValueChange={(itemValue) =>
-            handleFieldChange("gender", itemValue === "true")
-          }
-          style={styles.picker}
-        >
-          <Picker.Item label="Nam" value="true" />
-          <Picker.Item label="Nữ" value="false" />
-        </Picker>
+        <CustomInput
+          label="Gender"
+          placeholder="Nam hoặc Nữ"
+          icon={<FontAwesome name="user" size={24} color="black" />}
+          onChangeText={(text) => handleFieldChange("gender", text)}
+          text={formData.gender}
+          type={""}
+          edit={false}
+        />
 
         <Text style={styles.inputLabel}>Ngày tháng năm sinh</Text>
         <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
           <Text style={styles.textInput}>
-            {formData.dateOfBirth || "Chọn ngày"}
+            {formData.date_of_birth || "Chọn ngày"}
           </Text>
         </TouchableOpacity>
 
@@ -278,6 +275,20 @@ export default function SettingScreen() {
           icon={<FontAwesome name="envelope" size={24} color="black" />}
           text={formData.email}
           onChangeText={(text) => handleFieldChange("email", text)}
+          type={""}
+        />
+        <CustomInput
+          label="Insurance"
+          placeholder="0"
+          icon={
+            <MaterialCommunityIcons
+              name="mother-heart"
+              size={24}
+              color="black"
+            />
+          }
+          text={String(formData.insurance)}
+          onChangeText={(text) => handleFieldChange("insurance", text)}
           type={""}
         />
       </View>
