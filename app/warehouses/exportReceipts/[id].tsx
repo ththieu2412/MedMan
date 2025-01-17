@@ -185,13 +185,14 @@ const ExportReceiptDetails = () => {
     const selectedMedicine = medicines.find(
       (medicine) => medicine.value === newMedicine
     );
-
+    console.log("thuốc nè bro ", selectedMedicine);
     if (!selectedMedicine) {
       Alert.alert("Lỗi", "Thuốc được chọn không tồn tại.");
       return;
     }
 
-    // Tạo sản phẩm mới
+    // Kiểm tra nếu số lượng nhập vào lớn hơn số lượng tồn kho
+
     const newProduct = {
       medicine: selectedMedicine.value,
       quantity: newQuantity,
@@ -207,6 +208,7 @@ const ExportReceiptDetails = () => {
 
       // Kiểm tra sau khi cập nhật
       console.log("Danh sách sau khi thêm sản phẩm:", updatedDetails);
+
       return updatedDetails;
     });
 
@@ -406,12 +408,42 @@ const ExportReceiptDetails = () => {
                         style={styles.input}
                         value={String(detail.quantity)}
                         onChangeText={(text) => {
-                          const updatedDetails = [...exportDetails.details];
-                          updatedDetails[index].quantity = Number(text);
-                          setExportDetails((prev) => ({
-                            ...prev,
-                            details: updatedDetails,
-                          }));
+                          // Chuyển đổi giá trị nhập vào thành số
+                          const enteredQuantity = Number(text);
+
+                          // Lấy thông tin tồn kho của thuốc từ mảng 'medicines'
+                          const medicine = medicines.find(
+                            (med) => med.id === detail.medicineId
+                          );
+
+                          if (medicine) {
+                            const availableStock = medicine.stock_quantity; // Số lượng tồn kho của thuốc
+
+                            // Kiểm tra nếu giá trị nhập vào lớn hơn stock_quantity
+                            if (enteredQuantity > availableStock) {
+                              // Nếu nhập vào lớn hơn tồn kho, set giá trị bằng tồn kho và thông báo
+                              Alert.alert(
+                                "Thông báo",
+                                `Số lượng nhập không thể lớn hơn tồn kho. Tồn kho hiện tại: ${availableStock}`
+                              );
+                              const updatedDetails = [...exportDetails.details];
+                              updatedDetails[index].quantity = availableStock; // Gán số lượng = tồn kho
+                              setExportDetails((prev) => ({
+                                ...prev,
+                                details: updatedDetails,
+                              }));
+                            } else {
+                              // Nếu giá trị nhập hợp lệ, cập nhật bình thường
+                              const updatedDetails = [...exportDetails.details];
+                              updatedDetails[index].quantity = enteredQuantity;
+                              setExportDetails((prev) => ({
+                                ...prev,
+                                details: updatedDetails,
+                              }));
+                            }
+                          } else {
+                            console.log("Thuốc không tồn tại trong danh sách.");
+                          }
                         }}
                         keyboardType="numeric"
                       />
@@ -518,16 +550,55 @@ const ExportReceiptDetails = () => {
             <TextInput
               style={styles.input}
               value={String(newQuantity)}
-              onChangeText={(text) => setNewQuantity(Number(text))}
+              onChangeText={(text) => {
+                // Chuyển đổi giá trị nhập vào thành số
+                const enteredQuantity = Number(text);
+
+                // Kiểm tra nếu giá trị nhập vào là một số hợp lệ
+                if (isNaN(enteredQuantity)) {
+                  return; // Nếu không phải số hợp lệ, không làm gì
+                }
+
+                // Lấy số lượng tồn kho của thuốc đã chọn
+                const selectedMedicine = medicines.find(
+                  (medicine) => medicine.value === newMedicine
+                );
+
+                if (selectedMedicine) {
+                  const availableStock = selectedMedicine.stock_quantity;
+
+                  // Kiểm tra nếu số lượng nhập vào lớn hơn số tồn kho
+                  if (enteredQuantity > availableStock) {
+                    // Gán số lượng nhập vào bằng số tồn kho
+                    setNewQuantity(availableStock);
+
+                    // Hiển thị thông báo về số lượng tồn kho
+                    Alert.alert(
+                      "Thông báo",
+                      `Số lượng nhập không thể lớn hơn tồn kho. Tồn kho hiện tại: ${availableStock}. Số lượng đã được điều chỉnh về ${availableStock}.`
+                    );
+                  } else {
+                    // Nếu số lượng hợp lệ, cập nhật giá trị
+                    setNewQuantity(enteredQuantity);
+                  }
+                }
+              }}
               keyboardType="numeric"
               placeholder="Nhập số lượng"
             />
+
             <MyButton
               title="Thêm"
               onPress={handleAddProduct}
               buttonStyle={styles.addButton}
             />
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
+            <TouchableOpacity
+              onPress={() => {
+                setNewMedicine("");
+                setNewQuantity(0);
+                setModalVisible(false); // Đóng modal sau khi thông báo
+              }}
+            >
               <Text style={styles.closeModal}>Đóng</Text>
             </TouchableOpacity>
           </View>

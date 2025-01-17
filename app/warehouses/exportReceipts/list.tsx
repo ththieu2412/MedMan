@@ -264,6 +264,13 @@ const ERListScreen = () => {
         renderItem={renderItem}
         ListEmptyComponent={<Text>No ER records available.</Text>}
       />
+      {/* Nút thêm icon góc dưới */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setModalVisible(true)}
+      >
+        <Ionicons name="add" size={40} color="white" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -375,6 +382,15 @@ const styles = StyleSheet.create({
     color: "#000",
     fontWeight: "bold",
     marginLeft: 5,
+  },
+  fab: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    backgroundColor: "#007bff",
+    padding: 15,
+    borderRadius: 50,
+    elevation: 5,
   },
 });
 
