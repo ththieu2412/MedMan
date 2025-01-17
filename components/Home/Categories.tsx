@@ -70,21 +70,20 @@ const Categories = () => {
 
   const categoriesList = allCategories.filter((category) => {
     if (user?.role.toLowerCase() === "admin") {
-      return true; // Admin thấy tất cả
+      // return true; // Admin thấy tất cả
+      return ["Report", "Staff"].includes(category.name);
     }
 
     if (user?.role.toLowerCase() === "doctor") {
-      return ["Patient", "Medicine", "Prescription"].includes(category.name);
+      return ["Patient", "Prescription"].includes(category.name);
     }
 
     if (user?.role.toLowerCase() === "pharmacist") {
-      return ["Patient", "Medicine", "Export"].includes(category.name);
+      return ["Medicine", "Export", "Import"].includes(category.name);
     }
 
     if (user?.role === "staff") {
-      return ["Patient", "Medicine", "Import", "Warehouse"].includes(
-        category.name
-      );
+      return ["Patient"].includes(category.name);
     }
     return false; // Mặc định không cho phép các role khác
   });
