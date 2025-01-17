@@ -67,22 +67,21 @@ const WarehouseDetails = () => {
     console.log("Cập nhật kho:", updatedWarehouse);
     try {
       // Gọi API cập nhật kho
-      const response = await updateWarehouse(
-        token,
-        warehouse.id,
-        updatedWarehouse
-      );
-      console.log("Cập nhật kho thành công:", updatedWarehouse);
-      console.log("Cập nhật kho thành công:", response);
+      const response = await updateWarehouse(warehouse.id, updatedWarehouse);
+      if (response.success) {
+        console.log("Cập nhật kho thành công:", updatedWarehouse);
+        console.log("Cập nhật kho thành công:", response);
 
-      // Sau khi cập nhật thành công, tải lại thông tin kho
-      fetchWarehouseDetails(); // Gọi lại hàm để tải lại dữ liệu kho mới từ server
-
-      Alert.alert("Cập nhật kho thành công!");
-      setIsEditing(false); // Tắt chế độ chỉnh sửa
-    } catch (error) {
-      console.error("Cập nhật kho thất bại:", error);
-      Alert.alert("Cập nhật kho thất bại. Vui lòng thử lại.");
+        // Sau khi cập nhật thành công, tải lại thông tin kho
+        fetchWarehouseDetails(); // Gọi lại hàm để tải lại dữ liệu kho mới từ server
+        Alert.alert("Thành công", "Đã cập nhập kho.");
+        router.replace(`/warehouses/warehouses/${id}`);
+        setIsEditing(false);
+      } else {
+        Alert.alert("Thông báo lỗi", response.errorMessage);
+      }
+    } catch (error: any) {
+      Alert.alert("Lỗi", error || "Cập nhật kho thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -96,14 +95,15 @@ const WarehouseDetails = () => {
         onPress: async () => {
           try {
             const response = await deleteWarehouse(token, warehouse.id);
-
-            console.log(`Đã xóa kho: ${warehouse.id}`, response.errorMessage);
-            router.replace("/warehouses/warehouses/list"); // Điều hướng về danh sách kho
-
-            Alert.alert("Xóa kho thành công!");
-          } catch (error) {
-            console.error("Xóa kho thất bại:", error);
-            Alert.alert("Xóa kho thất bại. Vui lòng thử lại.");
+            if (response.success) {
+              Alert.alert("Thành công", "Đã xóa kho.");
+              router.replace("/warehouses/warehouses/list");
+            } else {
+              Alert.alert("Thông báo lỗi", response.errorMessage);
+              // router.replace("/warehouses/warehouses/list");
+            }
+          } catch (error: any) {
+            Alert.alert("Lỗi", error || "Không thể thêm kho mới.");
           }
         },
       },
@@ -142,9 +142,8 @@ const WarehouseDetails = () => {
 
         <View style={styles.detailContainer}>
           <Text style={styles.label}>Tên Kho:</Text>
-          
-            <Text style={styles.value}>{warehouse.warehouse_name}</Text>
-          
+
+          <Text style={styles.value}>{warehouse.warehouse_name}</Text>
         </View>
 
         <View style={styles.detailContainer}>

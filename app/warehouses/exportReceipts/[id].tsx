@@ -76,9 +76,10 @@ const ExportReceiptDetails = () => {
     try {
       // Lấy thông tin nhân viên
       if (exportData.employee) {
-        const employeeData = await employeeDetail(exportData.employee);
-        if (employeeData?.full_name) {
-          setEmployeeName(employeeData.full_name);
+        const employeeResponse = await employeeDetail(exportData.employee);
+
+        if (employeeResponse.success && employeeResponse.data?.full_name) {
+          setEmployeeName(employeeResponse.data.full_name);
         } else {
           setEmployeeName("Không xác định");
         }
@@ -86,9 +87,13 @@ const ExportReceiptDetails = () => {
 
       // Lấy thông tin kho
       if (exportData?.warehouse) {
-        const warehouseData = await detailWarehouse(exportData.warehouse);
-        if (warehouseData?.data?.data?.warehouse_name) {
-          setWarehouseName(warehouseData.data.data.warehouse_name);
+        const warehouseResponse = await detailWarehouse(exportData.warehouse);
+
+        if (
+          warehouseResponse.success &&
+          warehouseResponse.data?.data?.warehouse_name
+        ) {
+          setWarehouseName(warehouseResponse.data.data.warehouse_name);
         } else {
           setWarehouseName("Không xác định");
         }
@@ -394,6 +399,7 @@ const ExportReceiptDetails = () => {
                   </Text>
                   <Text style={styles.productDetailText}>
                     Bảo hiểm hỗ trợ: {detail.insurance_covered}
+                    {detail.insurance_covered ? "Cấp" : "Không"}
                   </Text>
                   <Text style={styles.productDetailText}>
                     Bảo hiểm trả: {detail.ins_amount}
@@ -625,14 +631,7 @@ const styles = StyleSheet.create({
     height: 50,
     width: "100%",
   },
-  // input: {
-  //   padding: 8,
-  //   borderWidth: 1,
-  //   borderColor: "#ccc",
-  //   borderRadius: 5,
-  //   marginTop: 5,
-  //   fontSize: 16,
-  // },
+  
   detailContainer: {
     flexDirection: "row",
     marginBottom: 15,

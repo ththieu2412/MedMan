@@ -23,6 +23,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import { createPatient } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const SettingScreen = () => {
   const [profile, setProfile] = useState({
@@ -40,11 +41,11 @@ const SettingScreen = () => {
   const [employee, setEmployee] = useState<string | null>(null);
 
   const router = useRouter();
-  const user = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (user.user?.employee_id) {
-      setEmployee(user.user.employee_id);
+    if (user?.employee_id) {
+      setEmployee(user?.employee_id);
     }
   }, [user]);
 
@@ -61,7 +62,7 @@ const SettingScreen = () => {
       Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin!");
       return;
     }
-    Alert.alert("Xác nhận", "Bạn có muốn tạo nhân viên mới?", [
+    Alert.alert("Xác nhận", "Bạn có muốn tạo bệnh nhân mới?", [
       {
         text: "Đồng ý",
         onPress: async () => {
@@ -71,13 +72,36 @@ const SettingScreen = () => {
               ...profile,
               employee,
             });
+
             console.log(response);
             if (response.success) {
               Alert.alert("Thông báo", "Thêm bệnh nhân thành công");
               console.log("Bệnh nhân đã được tạo!");
               router.push(`/(tabs)/patients`);
             } else {
-              Alert.alert("Lỗi", response.errorMessage);
+              if (response.errorMessage) {
+                if (response.errorMessage.date_of_birth) {
+                  Alert.alert(
+                    "Lỗi",
+                    response.errorMessage.date_of_birth.join(", ")
+                  );
+                } else if (response.errorMessage.email) {
+                  Alert.alert("Lỗi", response.errorMessage.email.join(", "));
+                } else if (response.errorMessage.phone) {
+                  Alert.alert("Lỗi", response.errorMessage.phone.join(", "));
+                } else if (response.errorMessage.id_card) {
+                  Alert.alert("Lỗi", response.errorMessage.id_card.join(", "));
+                } else if (response.errorMessage.insurance) {
+                  Alert.alert(
+                    "Lỗi",
+                    response.errorMessage.insurance.join(", ")
+                  );
+                } else if (response.errorMessage.name) {
+                  Alert.alert("Lỗi", response.errorMessage.name.join(", "));
+                } else {
+                  Alert.alert("Lỗi", "Có lỗi xảy ra, vui lòng thử lại.");
+                }
+              }
             }
           } catch (error) {
             // console.error("Lỗi khi tạo nhân viên:", error);
@@ -232,6 +256,18 @@ const SettingScreen = () => {
           icon={<FontAwesome name="envelope" size={24} color="black" />}
           onChangeText={handleFieldChange("email")}
         />
+        <CustomInput
+          label="Insurance"
+          placeholder="0"
+          icon={
+            <MaterialCommunityIcons
+              name="mother-heart"
+              size={24}
+              color="black"
+            />
+          }
+          onChangeText={handleFieldChange("insurance")}
+        />
       </View>
 
       <MyButton
@@ -287,7 +323,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: spacing.xs,
+    padding: 20,
   },
   picker: { flex: 1, marginLeft: spacing.sm, color: "#cccccc" },
   textInput: { flex: 1, marginLeft: spacing.sm, fontSize: fontSize.md },

@@ -11,7 +11,6 @@ import {
 import { fontSize, spacing } from "@/constants/dimensions";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import CustomInput from "@/components/CustomInput";
-import { Picker } from "@react-native-picker/picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { format } from "date-fns";
 import * as ImagePicker from "expo-image-picker";
@@ -27,7 +26,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function SettingScreen() {
   const { id } = useLocalSearchParams();
-  const [patient, setPatient] = useState(null);
   const [formData, setFormData] = useState({
     image: null,
     full_name: "",
@@ -48,7 +46,6 @@ export default function SettingScreen() {
       try {
         const response = await PatientDetail(Number(id));
         if (response.success) {
-          setPatient(response.data);
           setFormData({
             image: null,
             full_name: response.data.full_name,
@@ -159,7 +156,13 @@ export default function SettingScreen() {
       if (response.success) {
         Alert.alert("Thông báo", "Lưu thông tin thành công!");
       } else {
-        Alert.alert("Lỗi", "Lưu thông tin không thành công.");
+        if (response.errorMessage.phone_number) {
+          Alert.alert("Lỗi", response.errorMessage.phone_number.join(","));
+        } else if (response.errorMessage.insurance) {
+          Alert.alert("Lỗi", response.errorMessage.insurance.join(", "));
+        } else {
+          Alert.alert("Lỗi", response.errorMessage.email.join(", "));
+        }
       }
     } catch (error) {
       console.error(error);
@@ -246,12 +249,14 @@ export default function SettingScreen() {
           edit={false}
         />
 
-        <Text style={styles.inputLabel}>Ngày tháng năm sinh</Text>
-        <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
-          <Text style={styles.textInput}>
-            {formData.date_of_birth || "Chọn ngày"}
-          </Text>
-        </TouchableOpacity>
+        <CustomInput
+          label="Ngày tháng năm sinh"
+          placeholder="dd/MM/YYYY"
+          icon={<FontAwesome name="birthday-cake" size={24} color="black" />}
+          text={formData.date_of_birth}
+          type={""}
+          edit={false}
+        />
 
         <CustomInput
           label="Địa chỉ"
@@ -260,6 +265,7 @@ export default function SettingScreen() {
           text={formData.address}
           onChangeText={(text) => handleFieldChange("address", text)}
           type={""}
+          edit={true}
         />
         <CustomInput
           label="SĐT"
@@ -268,6 +274,7 @@ export default function SettingScreen() {
           text={formData.phoneNumber}
           onChangeText={(text) => handleFieldChange("phoneNumber", text)}
           type={""}
+          edit={true}
         />
         <CustomInput
           label="Email"
@@ -276,6 +283,7 @@ export default function SettingScreen() {
           text={formData.email}
           onChangeText={(text) => handleFieldChange("email", text)}
           type={""}
+          edit={true}
         />
         <CustomInput
           label="Insurance"
@@ -290,6 +298,7 @@ export default function SettingScreen() {
           text={String(formData.insurance)}
           onChangeText={(text) => handleFieldChange("insurance", text)}
           type={""}
+          edit={true}
         />
       </View>
 

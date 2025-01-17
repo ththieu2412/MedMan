@@ -83,7 +83,6 @@ export const detailWarehouse = async (warehouseId: number) => {
 
 // Hàm cập nhật chi tiết phiếu nhập theo id phiếu nhập
 export const updateWarehouse = async (
-  token: string,
   id: number,
   warehouseData: Warehouse
 ) => {
