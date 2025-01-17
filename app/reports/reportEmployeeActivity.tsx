@@ -30,10 +30,9 @@ const reportEmployeeActivity = () => {
   const fetchReport = async () => {
     try {
       const data = await ReportEmployeeActivity(
-        token,
         limit // Truyền giá trị limit vào API
       );
-      setReportData(data);
+      setReportData(data.data);
     } catch (error) {
       console.error("Error fetching report:", error);
     }

@@ -50,13 +50,11 @@ const WarehouseList = () => {
   // Hàm tìm kiếm kho theo các tham số
   const handleSearch = async () => {
     // Kiểm tra nếu ít nhất một tham số tìm kiếm đã được nhập
-    if (!address && !isActive) {
-      // Hiển thị thông báo lỗi hoặc không thực hiện tìm kiếm nếu không có tham số tìm kiếm
-      alert(
-        "Vui lòng nhập ít nhất một thông tin tìm kiếm (địa chỉ hoặc trạng thái kho)."
-      );
-      return; // Dừng hàm nếu không có tham số tìm kiếm
-    }
+    // if (!address) {
+    //   // Hiển thị thông báo lỗi hoặc không thực hiện tìm kiếm nếu không có tham số tìm kiếm
+    //   alert("Vui lòng nhập ít nhất một thông tin tìm kiếm (địa chỉ).");
+    //   return; // Dừng hàm nếu không có tham số tìm kiếm
+    // }
 
     setLoading(true);
     const result = await searchWarehouses(address, isActive ? "true" : "false");

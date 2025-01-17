@@ -25,6 +25,7 @@ const IRDetails = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [newStatus, setNewStatus] = useState<boolean>(false);
   const [updatedIR, setUpdatedIR] = useState<any>({
     id: "",
     import_date: "",
@@ -58,12 +59,12 @@ const IRDetails = () => {
           total_amount: data.data.data.total_amount,
           details: data.data.data.details || [],
         });
+        setNewStatus(data.data.data.is_approved);
         setLoading(false);
         setError(null);
       } else {
         Alert.alert("Thông báo lỗi", data.errorMessage);
         // router.replace("/warehouses/warehouses/list");
-        
       }
       // if (data.data) {
       //   setIrDetails(data.data);
@@ -119,7 +120,7 @@ const IRDetails = () => {
         response.data.data
       );
       if (response.success) {
-        setProductDetails(response.data.data|| []);
+        setProductDetails(response.data.data || []);
       } else {
         Alert.alert("Thông báo lỗi", response.errorMessage);
         // router.replace("/warehouses/warehouses/list");
@@ -274,14 +275,14 @@ const IRDetails = () => {
       }
     >
       <Text style={styles.title}>Chi Tiết Phiếu Nhập</Text>
-
-      <TouchableOpacity
-        style={styles.editButton}
-        onPress={() => setIsEditing(true)} // Kích hoạt chế độ chỉnh sửa
-      >
-        <Icon name="pencil" size={24} color="#007bff" />
-      </TouchableOpacity>
-
+      {!newStatus && (
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => setIsEditing(true)} // Kích hoạt chế độ chỉnh sửa
+        >
+          <Icon name="pencil" size={24} color="#007bff" />
+        </TouchableOpacity>
+      )}
       <View style={styles.detailContainer}>
         <Text style={styles.label}>Mã Phiếu Nhập:</Text>
         <Text style={styles.value}>{irDetails.id}</Text>
@@ -360,12 +361,14 @@ const IRDetails = () => {
 
       {isDetailsExpanded && (
         <View style={styles.productDetailsContainer}>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={handleEditDetails}
-          >
-            <Icon name="pencil" size={24} color="#007bff" />
-          </TouchableOpacity>
+          {!newStatus && (
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={handleEditDetails}
+            >
+              <Icon name="pencil" size={24} color="#007bff" />
+            </TouchableOpacity>
+          )}
           {productDetails.map((detail: any) => (
             <View key={detail.id} style={styles.productDetail}>
               <Text style={styles.productDetailText}>
@@ -394,7 +397,7 @@ const IRDetails = () => {
           />
         </>
       ) : (
-        !irDetails.is_approved && ( // Kiểm tra trạng thái trước khi hiển thị
+        !newStatus && ( // Kiểm tra trạng thái trước khi hiển thị
           <MyButton
             title="Xóa"
             onPress={handleDelete}

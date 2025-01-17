@@ -264,12 +264,12 @@ const ERListScreen = () => {
         renderItem={renderItem}
         ListEmptyComponent={<Text>No ER records available.</Text>}
       />
-      {/* Nút thêm icon góc dưới */}
       <TouchableOpacity
-        style={styles.fab}
-        onPress={() => setModalVisible(true)}
+        style={styles.clearFiltersButton}
+        onPress={() => router.replace("/warehouses/exportReceipts/add/")} // Chuyển hướng đến trang thêm phiếu
       >
-        <Ionicons name="add" size={40} color="white" />
+        <Ionicons name="add" size={20} color="#000" />
+        <Text style={styles.clearFiltersText}>Thêm</Text>
       </TouchableOpacity>
     </View>
   );
