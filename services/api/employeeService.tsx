@@ -39,7 +39,7 @@ export const createEmployees = async (employee: Employee) => {
     }
     return {
       success: false,
-      errorMessage: "Có lỗi xảy ra khi tạo nhân viên.",
+      error,
     };
   }
 };

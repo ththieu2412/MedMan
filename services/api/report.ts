@@ -82,7 +82,6 @@ export const ReportInventory = async (
   token: string
 ) => {
   try {
-  
 
     // Tạo URL tìm kiếm với các tham số query đã được thêm
     const url = "/reports/inventory/";
@@ -108,18 +107,17 @@ export const ReportInventory = async (
   }
 };
 
-export const ReportPatient = async (year: number, month: number) => {
+export const ReportPatient = async (start_date: string, end_date: string) => {
   try {
-    const response = await api.get(`/reports/patient-report/?year=${year}&month=${month}`); // Gọi API với URL đã được sửa
+    const response = await api.get(`/reports/patient-report/?start_date=${start_date}&end_date=${end_date}`); // Gọi API với URL đã được sửa
     return { success: true, data: response.data };  
   } catch (error: any) {
-    if (error.response && error.response.data) {
-      // Xử lý lỗi trả về từ API
-      const errorMessage = error.response.data.errorMessage || "Unknown error occurred.";
+    console.log("Looixxxxx", error)
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
       return { success: false, errorMessage };
     }
-    // Trả về lỗi mặc định nếu không có thông tin lỗi cụ thể
-    return { success: false, errorMessage: "Có lỗi xảy ra khi thêm thuốc." };
+    return { success: false, errorMessage: "Có lỗi xảy ra khi lấy dữ liệu." };
   }
 };
 

@@ -8,12 +8,12 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
+import { parse } from "date-fns";
 import { useRouter } from "expo-router";
-import { format } from "date-fns";
+import { format, formatDate } from "date-fns";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Picker } from "@react-native-picker/picker";
-import Header from "@/components/Profile/Header";
 import CustomInput from "@/components/CustomInput";
 import MyButton from "@/components/MyButton";
 import { fontSize, spacing } from "@/constants/dimensions";
@@ -38,8 +38,8 @@ const validateFields = (profile) => {
   }
 
   // Kiểm tra CCCD (13 ký tự số)
-  if (!/^\d{13}$/.test(profile.citizen_id)) {
-    errors.citizen_id = "CCCD phải là chuỗi 13 ký tự số!";
+  if (!/^\d{12}$/.test(profile.citizen_id)) {
+    errors.citizen_id = "CCCD phải là chuỗi 12 ký tự số!";
   }
 
   // Kiểm tra số điện thoại
@@ -73,7 +73,6 @@ const SettingScreen = () => {
     address: "",
     phone_number: "",
     email: "",
-    id_card: "",
     is_active: false,
     role: "staff",
   });
@@ -86,25 +85,23 @@ const SettingScreen = () => {
   const user = useAuth();
 
   const handleEdit = useCallback(async () => {
-    // if (
-    //   !profile.address ||
-    //   !profile.date_of_birth ||
-    //   !profile.email ||
-    //   !profile.full_name ||
-    //   !profile.citizen_id ||
-    //   !profile.phone_number ||
-    //   !profile.gender ||
-    //   !profile.role
-    // ) {
-    //   console.log("Profile cập nhật", profile);
-    //   Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin!");
-    //   return;
-    // }
+    if (
+      !profile.address ||
+      !profile.date_of_birth ||
+      !profile.email ||
+      !profile.full_name ||
+      !profile.citizen_id ||
+      !profile.phone_number ||
+      !profile.gender ||
+      !profile.role
+    ) {
+      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
 
     const validationErrors = validateFields(profile);
     setErrors(validationErrors);
 
-    console.log(profile);
     // Nếu có lỗi, không tiếp tục
     if (Object.keys(validationErrors).length > 0) {
       return;
@@ -115,17 +112,34 @@ const SettingScreen = () => {
         text: "Đồng ý",
         onPress: async () => {
           try {
-            const response = await createEmployees(profile);
+            const formattedProfile = {
+              ...profile,
+              date_of_birth: profile.date_of_birth
+                ? format(
+                    parse(profile.date_of_birth, "dd/MM/yyyy", new Date()),
+                    "yyyy-MM-dd"
+                  )
+                : null, // Xử lý nếu date_of_birth null
+            };
+
+            console.log("Profile gửi tạo: ", formattedProfile);
+
+            const response = await createEmployees(formattedProfile);
             console.log(response);
+
             if (response.success) {
               Alert.alert("Thông báo", "Thêm nhân viên thành công");
               console.log("Nhân viên đã được tạo!");
               router.push(`./list?role=${profile.role}`);
             } else {
-              Alert.alert("Lỗi", response.errorMessage);
+              if (response.error.date_of_birth) {
+                Alert.alert("Lỗi", response.error.date_of_birth);
+              } else {
+                Alert.alert("Lỗi", response.error.detail);
+              }
             }
           } catch (error) {
-            // console.error("Lỗi khi tạo nhân viên:", error);
+            console.log("Lỗi khi tạo nhân viên: ", error);
             Alert.alert("Lỗi", "Có lỗi xảy ra khi tạo nhân viên.");
           }
         },
@@ -340,7 +354,7 @@ const SettingScreen = () => {
       </View>
 
       <MyButton
-        title="Lưu"
+        title="Tạo mới"
         onPress={handleEdit}
         buttonStyle={{ backgroundColor: "green", marginBottom: spacing.md }}
       />
