@@ -50,14 +50,8 @@ const ImportReceiptList = () => {
   };
 
   const fetchFilteredReceipts = async () => {
-    if (
-      !startDate &&
-      !endDate &&
-      !employeeName &&
-      !warehouseName &&
-      !isApproved
-    ) {
-      Alert.alert("Lỗi", "Vui lòng nhập ít nhất một tiêu chí tìm kiếm.");
+    if (!startDate && !endDate) {
+      Alert.alert("Lỗi", "Vui lòng nhập cả từ ngày và đến ngày.");
       return;
     }
 
