@@ -18,6 +18,7 @@ const CustomInput: React.FC<CustomInputProps> = ({
   type,
   onChangeText,
   text,
+  edit,
 }) => {
   const [secureTextEntery, setSecureTextEntery] = useState(true);
   return (
@@ -32,6 +33,7 @@ const CustomInput: React.FC<CustomInputProps> = ({
           secureTextEntry={type === "password" && secureTextEntery}
           onChangeText={onChangeText}
           value={text}
+          editable={edit}
         />
         {type === "password" && (
           <TouchableOpacity

@@ -20,8 +20,8 @@ const SignIn = () => {
   const router = useRouter();
   const { setUser, user, login, isLoading } = useAuth();
 
-  const [userName, setUserName] = useState("ththieu");
-  const [password, setPassword] = useState("24122003");
+  const [userName, setUserName] = useState("NV001");
+  const [password, setPassword] = useState("239003");
   const [error, setError] = useState<string>("");
 
   const validateLogin = async () => {

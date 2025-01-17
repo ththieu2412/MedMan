@@ -7,46 +7,68 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { router } from "expo-router";
+import { Patient } from "@/types";
+import { getMedicineList, getPatients } from "@/services/api";
+import { Picker } from "@react-native-picker/picker"; // Import Picker
+import { useAuth } from "@/context/AuthContext";
 
 const AddPrescriptions = () => {
   const [diagnosis, setDiagnosis] = useState("");
-  const [prescriptionDate, setPrescriptionDate] = useState("");
   const [instruction, setInstruction] = useState("");
-  const [doctorName, setDoctorName] = useState("");
+  const [doctorId, setDoctorId] = useState("");
+  const [patients, setPatients] = useState<Patient[] | null>(null);
   const [patientName, setPatientName] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState<string>("");
+  const { user } = useAuth();
+
+  const fetchPatient = async () => {
+    try {
+      const response = await getPatients();
+      setPatients(response.data.data);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách bệnh nhân: ", error);
+    }
+  };
+
+  const fetchMedicine = async () => {
+    try {
+      const response = await getMedicineList();
+      console.log(response.data);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách bệnh nhân: ", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMedicine();
+    fetchPatient();
+    setDoctorId(user?.employee_id);
+  }, []);
 
   const handleAddPrescription = () => {
-    // if (
-    //   !diagnosis ||
-    //   !prescriptionDate ||
-    //   !instruction ||
-    //   !doctorName ||
-    //   !patientName
-    // ) {
-    //   Alert.alert("Error", "Please fill in all fields.");
-    //   return;
-    // }
+    if (!diagnosis || !instruction || !selectedPatient) {
+      Alert.alert("Error", "Vui lòng điền đầy đủ thông tin.");
+      return;
+    }
 
     const newPrescription = {
       diagnosis,
-      prescription_date: prescriptionDate,
       instruction,
-      doctor: { id: 1, full_name: doctorName },
-      patient: { id: 2, full_name: patientName },
+      doctor_id: doctorId,
+      patient_id: selectedPatient,
     };
 
     router.replace("/(tabs)/prescriptions");
-    Alert.alert("Success", "Prescription added successfully!");
+    Alert.alert("Thông báo", "Đơn thuốc được thêm thành công!");
     console.log(newPrescription);
 
     // Reset form fields
     setDiagnosis("");
-    setPrescriptionDate("");
     setInstruction("");
-    setDoctorName("");
     setPatientName("");
+    setSelectedPatient(""); // Reset patient selection
   };
 
   return (
@@ -61,14 +83,6 @@ const AddPrescriptions = () => {
         onChangeText={setDiagnosis}
       />
 
-      {/* Prescription Date */}
-      <TextInput
-        style={styles.input}
-        placeholder="Prescription Date (YYYY-MM-DD HH:MM)"
-        value={prescriptionDate}
-        onChangeText={setPrescriptionDate}
-      />
-
       {/* Instruction */}
       <TextInput
         style={styles.input}
@@ -77,21 +91,28 @@ const AddPrescriptions = () => {
         onChangeText={setInstruction}
       />
 
-      {/* Doctor Name */}
-      <TextInput
+      {/* Patient Name Picker */}
+      <Text style={styles.label}>Chọn bệnh nhân:</Text>
+      <Picker
+        selectedValue={selectedPatient}
         style={styles.input}
-        placeholder="Doctor's Name"
-        value={doctorName}
-        onChangeText={setDoctorName}
-      />
-
-      {/* Patient Name */}
-      <TextInput
-        style={styles.input}
-        placeholder="Patient's Name"
-        value={patientName}
-        onChangeText={setPatientName}
-      />
+        onValueChange={(itemValue, itemIndex) => {
+          setSelectedPatient(itemValue);
+          const selected = patients?.find(
+            (patient) => patient.id === itemValue
+          );
+          setPatientName(selected ? selected.full_name : "");
+        }}
+      >
+        <Picker.Item label="Chọn bệnh nhân" value="" />
+        {patients?.map((patient) => (
+          <Picker.Item
+            key={patient.id}
+            label={patient.full_name}
+            value={patient.id}
+          />
+        ))}
+      </Picker>
 
       {/* Save Button */}
       <TouchableOpacity style={styles.button} onPress={handleAddPrescription}>
@@ -124,6 +145,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 20,
     backgroundColor: "#fff",
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
+    color: "#333",
   },
   button: {
     backgroundColor: "#007BFF",

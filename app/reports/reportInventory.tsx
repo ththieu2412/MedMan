@@ -20,6 +20,7 @@ const reportInventoryScreen = () => {
   const fetchReport = async () => {
     try {
       const data = await ReportInventory(token);
+      console.log("Response nhận được từ report tồn kho", data);
       setReportData(data);
     } catch (error) {
       console.error("Error fetching report:", error);

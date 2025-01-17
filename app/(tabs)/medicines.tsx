@@ -10,21 +10,23 @@ import MyButton from "@/components/MyButton";
 import { useRouter } from "expo-router";
 import { getMedicineList } from "@/services/api";
 import { Medicine } from "@/types";
+import { useAuth } from "@/context/AuthContext";
 
 const Medicines = () => {
   const router = useRouter();
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [searchText, setSearchText] = useState("");
-  const [sortBy, setSortBy] = useState("sale_price"); // 'sale_price' hoặc 'stock_quantity'
-  const [sortOrder, setSortOrder] = useState("asc"); // 'asc' hoặc 'desc'
+  const [sortBy, setSortBy] = useState("sale_price");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const { user } = useAuth();
+  const shouldShowButton = user?.role === "staff";
 
-  // Fetch dữ liệu danh sách thuốc
   const fetchData = async () => {
     try {
       const response = await getMedicineList();
       setMedicines(response.data);
     } catch (error: any) {
-      console.error("Error fetching medicine list:", error.message);
+      console.log("Error fetching medicine list:", error.message);
     }
   };
 
@@ -32,26 +34,40 @@ const Medicines = () => {
     fetchData();
   }, []);
 
-  // Lọc thuốc theo từ khóa tìm kiếm
   const filteredMedicines = medicines.filter((medicine) =>
     medicine.medicine_name.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  // Hàm sắp xếp thuốc theo giá hoặc số lượng tồn
   const sortMedicines = (list: Medicine[]) => {
-    return list.sort((a, b) => {
-      const fieldA = sortBy === "sale_price" ? a.sale_price : a.stock_quantity;
-      const fieldB = sortBy === "sale_price" ? b.sale_price : b.stock_quantity;
+    let sortedList = [...list];
 
-      if (sortOrder === "asc") {
-        return fieldA - fieldB;
-      } else {
-        return fieldB - fieldA;
-      }
-    });
+    if (sortBy === "sale_price" || sortBy === "stock_quantity") {
+      // Sắp xếp theo giá hoặc số lượng tồn
+      sortedList = sortedList.sort((a, b) => {
+        const fieldA =
+          sortBy === "sale_price" ? a.sale_price : a.stock_quantity;
+        const fieldB =
+          sortBy === "sale_price" ? b.sale_price : b.stock_quantity;
+
+        return sortOrder === "asc" ? fieldA - fieldB : fieldB - fieldA;
+      });
+    }
+
+    // Sắp xếp theo tên thuốc
+    if (sortBy === "name") {
+      sortedList = sortedList.sort((a, b) => {
+        const nameA = a.medicine_name.toLowerCase();
+        const nameB = b.medicine_name.toLowerCase();
+
+        return sortOrder === "asc"
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
+      });
+    }
+
+    return sortedList;
   };
 
-  // Danh sách thuốc sau khi lọc và sắp xếp
   const displayedMedicines = sortMedicines(filteredMedicines);
 
   // Chuyển hướng đến trang thêm thuốc
@@ -85,6 +101,7 @@ const Medicines = () => {
         >
           <Picker.Item label="Giá" value="sale_price" />
           <Picker.Item label="Số lượng tồn" value="stock_quantity" />
+          <Picker.Item label="Tên thuốc" value="name" />
         </Picker>
 
         <Picker
@@ -120,11 +137,13 @@ const Medicines = () => {
       </Animatable.View>
 
       {/* Nút Thêm Thuốc */}
-      <MyButton
-        title={"Thêm thuốc"}
-        onPress={handleAdd}
-        buttonStyle={{ margrinBottom: -10 }}
-      />
+      {shouldShowButton && (
+        <MyButton
+          title={"Thêm thuốc"}
+          onPress={handleAdd}
+          buttonStyle={{ margrinBottom: -10 }}
+        />
+      )}
     </View>
   );
 };

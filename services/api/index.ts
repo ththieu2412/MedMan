@@ -8,3 +8,5 @@ export * from './IRdetailService';
 export * from './employeeService';
 export * from "./ERService";
 export * from "./report";
+export * from "./patientService";
+export * from "./prescriptionService";

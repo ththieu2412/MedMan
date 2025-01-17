@@ -15,18 +15,15 @@ import MyButton from "@/components/MyButton";
 import SearchText from "@/components/SearchText";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
-import { formatDate } from "@/utils/formatDate";
 import { getEmployees } from "@/services/api";
-
-const data: Employee[] = require("@/data/employees.json");
 
 const ListEmployees = () => {
   const { role } = useLocalSearchParams();
   const router = useRouter();
-  const [fadeAnim] = useState(new Animated.Value(0)); // Khởi tạo hiệu ứng mờ
-  const [selectedRole, setSelectedRole] = useState(role); // Trạng thái vai trò được chọn
-  const [filteredData, setFilteredData] = useState<Employee[]>(data); // Dữ liệu đã lọc
-  const [modalVisible, setModalVisible] = useState(false); // Modal lọc
+  const [fadeAnim] = useState(new Animated.Value(0)); // Hiệu ứng mờ
+  const [selectedRole, setSelectedRole] = useState(role || ""); // Vai trò
+  const [filteredData, setFilteredData] = useState<Employee[]>([]);
+  const [modalVisible, setModalVisible] = useState(false); // Modal
   const [employees, setEmployees] = useState<Employee[] | null>(null);
   const [searchText, setSearchText] = useState("");
 
@@ -38,44 +35,40 @@ const ListEmployees = () => {
     Alert.alert("Lỗi", errorMessage);
   };
 
-  // Hàm gọi API lấy danh sách nhân viên
+  // Lấy danh sách nhân viên từ API
   useEffect(() => {
     const fetchData = async () => {
       try {
         const result = await getEmployees();
-        if (result.success) {
+        if (result.success && Array.isArray(result.data)) {
           setEmployees(result.data);
         } else {
           handleError(result);
+          setEmployees([]);
         }
       } catch (error) {
         handleError(error);
+        setEmployees([]);
       }
     };
 
     fetchData();
   }, []);
 
+  // Lọc dữ liệu theo vai trò và từ khóa tìm kiếm
   useEffect(() => {
-    if (employees && employees.length > 0) {
-      // Loại bỏ khoảng trắng thừa và chuyển về chữ thường để so sánh
+    if (employees) {
       const sanitizedRole = selectedRole.trim().toLowerCase();
-
-      // Lọc theo role
-      const filteredByRole = employees.filter(
-        (employee) => employee.role === sanitizedRole
+      const filtered = employees.filter(
+        (employee) =>
+          employee.role.toLowerCase() === sanitizedRole &&
+          employee.full_name.toLowerCase().includes(searchText.toLowerCase())
       );
-
-      // Lọc thêm theo tên nếu có searchText
-      const filteredBySearch = filteredByRole.filter((employee) =>
-        employee.full_name.toLowerCase().includes(searchText.toLowerCase())
-      );
-
-      // Cập nhật dữ liệu sau khi lọc
-      setFilteredData(filteredBySearch);
+      setFilteredData(filtered);
     }
   }, [selectedRole, searchText, employees]);
-  // Hiệu ứng mờ
+
+  // Hiệu ứng mờ khi load danh sách
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -84,20 +77,13 @@ const ListEmployees = () => {
     }).start();
   }, []);
 
-  // Lọc dữ liệu theo vai trò
-  useEffect(() => {
-    const filtered = data.filter((employee) => employee.role === selectedRole);
-    setFilteredData(filtered);
-  }, [selectedRole]);
-
-  // Hàm lấy tiêu đề theo vai trò
   const getHeaderTitle = () => {
-    switch (selectedRole) {
-      case "Doctor":
+    switch (selectedRole.toLowerCase()) {
+      case "doctor":
         return "DANH SÁCH BÁC SĨ";
-      case "Pharmacist":
+      case "pharmacist":
         return "DANH SÁCH DƯỢC SĨ";
-      case "Staff":
+      case "staff":
         return "DANH SÁCH NHÂN VIÊN";
       default:
         return "DANH SÁCH NHÂN VIÊN";
@@ -105,23 +91,19 @@ const ListEmployees = () => {
   };
 
   const handleAdd = () => {
-    console.log("Hello");
     router.push("./add");
   };
 
   return (
     <View style={styles.container}>
-      {/* Tiêu đề động */}
       <Text style={styles.header}>{getHeaderTitle()}</Text>
 
-      {/* Thanh tìm kiếm và icon lọc */}
+      {/* Thanh tìm kiếm và nút lọc */}
       <View style={styles.searchContainer}>
         <SearchText
           placeholder="Nhập tên nhân viên"
           style={styles.searchText}
-          setSearchText={function (text: string): void {
-            throw new Error("Function not implemented.");
-          }}
+          setSearchText={setSearchText} // Sửa thành cập nhật trạng thái
         />
         <TouchableOpacity
           style={styles.filterIconContainer}
@@ -132,7 +114,7 @@ const ListEmployees = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Modal bộ lọc */}
+      {/* Modal lọc */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -142,33 +124,18 @@ const ListEmployees = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Chọn vai trò</Text>
-            <TouchableOpacity
-              style={styles.modalOption}
-              onPress={() => {
-                setSelectedRole("Doctor");
-                setModalVisible(false);
-              }}
-            >
-              <Text style={styles.modalOptionText}>Bác sĩ</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalOption}
-              onPress={() => {
-                setSelectedRole("Pharmacist");
-                setModalVisible(false);
-              }}
-            >
-              <Text style={styles.modalOptionText}>Dược sĩ</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalOption}
-              onPress={() => {
-                setSelectedRole("Staff");
-                setModalVisible(false);
-              }}
-            >
-              <Text style={styles.modalOptionText}>Nhân viên</Text>
-            </TouchableOpacity>
+            {["Doctor", "Pharmacist", "Staff"].map((role) => (
+              <TouchableOpacity
+                key={role}
+                style={styles.modalOption}
+                onPress={() => {
+                  setSelectedRole(role);
+                  setModalVisible(false);
+                }}
+              >
+                <Text style={styles.modalOptionText}>{role}</Text>
+              </TouchableOpacity>
+            ))}
             <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setModalVisible(false)}
@@ -196,11 +163,11 @@ const ListEmployees = () => {
                   style={styles.image}
                 />
                 <View style={styles.textContainer}>
+                  <Text style={styles.id_card}>{item.id_card}</Text>
                   <Text style={styles.name}>{item.full_name}</Text>
-                  <Text style={styles.info}>{item.gender}</Text>
-                  {/* <Text style={styles.info}>
-                  {formatDate(item.date_of_birth)}
-                </Text> */}
+                  <Text style={styles.info}>
+                    {item.gender === true || item.gender === 1 ? "Nam" : "Nữ"}
+                  </Text>
                 </View>
               </TouchableOpacity>
             </Link>
@@ -208,12 +175,8 @@ const ListEmployees = () => {
         )}
       />
 
-      {/* Nút thêm bác sĩ */}
-      <MyButton
-        title="Thêm nhân viên mới"
-        style={styles.button}
-        onPress={handleAdd}
-      />
+      {/* Nút thêm */}
+      <MyButton title="Thêm nhân viên mới" onPress={handleAdd} />
     </View>
   );
 };
@@ -323,15 +286,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flex: 1,
   },
-  name: {
-    fontSize: 22,
+  id_card: {
+    fontSize: 14,
+    color: "#007bff",
     fontWeight: "bold",
-    color: "#333",
+    marginBottom: 5,
+    textTransform: "uppercase",
+  },
+  name: {
+    fontSize: 18, // Tăng kích thước chữ để dễ nhìn hơn
+    color: "#333", // Màu đen để dễ nhìn
+    fontWeight: "700", // Đậm hơn
+    marginBottom: 5,
+    shadowColor: "#000", // Thêm bóng đổ để tạo chiều sâu
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   info: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 5,
+    fontSize: 14,
+    color: "#777", // Lighter color for gender text
+    fontStyle: "italic",
+    letterSpacing: 0.5,
   },
   button: {
     marginTop: 30,

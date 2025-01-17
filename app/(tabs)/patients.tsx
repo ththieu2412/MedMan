@@ -7,9 +7,14 @@ import SearchText from "@/components/SearchText";
 import { useRouter } from "expo-router";
 import { Patient } from "@/types";
 import { getPatients } from "@/services/api/patientService";
+import { useAuth } from "@/context/AuthContext";
 
 const Patients = () => {
   const router = useRouter();
+  const [searchText, setSearchText] = useState("");
+  const { user } = useAuth();
+  const shouldShowButton = user?.role === "doctor" || user?.role === "staff";
+
   const handlePress = () => {
     router.push("/prescriptions/patients/add");
   };
@@ -27,29 +32,34 @@ const Patients = () => {
     fetchData();
   }, []);
 
+  const filteredPatient = patients.filter((patients) =>
+    patients.full_name.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   return (
     <View style={styles.container}>
       <Header />
 
-      {/* Phần tìm kiếm */}
       <SearchText
         placeholder={"Nhập tên bệnh nhân"}
         style={styles.search}
-        setSearchText={function (text: string): void {
-          throw new Error("Function not implemented.");
-        }}
+        setSearchText={setSearchText}
       />
 
       {/* Phần tiêu đề */}
-      {/* <View style={styles.titleContainer}> */}
       <Text style={styles.title}>Danh sách bệnh nhân</Text>
-      {/* </View> */}
 
       {/* Danh sách bệnh nhân */}
-      <PatientListScreen patients={patients} />
+      {filteredPatient.length > 0 ? (
+        <PatientListScreen patients={filteredPatient} />
+      ) : (
+        <Text style={styles.noResultText}>Không tìm thấy thuốc phù hợp</Text>
+      )}
 
       {/* Nút thêm bệnh nhân */}
-      <MyButton title={"Thêm bệnh nhân"} onPress={handlePress} />
+      {shouldShowButton && (
+        <MyButton title={"Thêm bệnh nhân"} onPress={handlePress} />
+      )}
     </View>
   );
 };
@@ -112,5 +122,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
     textAlign: "center",
+  },
+  noResultText: {
+    fontSize: 16,
+    color: "#999",
+    textAlign: "center",
+    marginTop: 20,
   },
 });

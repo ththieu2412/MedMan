@@ -5,4 +5,5 @@ export type CustomInputProps = {
     type: string,
     onChangeText?: (text: string) => void;
     text: string;
+    edit: boolean;
 }

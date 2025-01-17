@@ -44,28 +44,45 @@ const MedicineDetails = () => {
   const handleSave = async () => {
     if (!medicine) return;
 
-    const updatedMedicine = {
-      ...medicine,
-      medicine_name: medicineName,
-      sale_price: parseFloat(salePrice),
-      unit: unit,
-    };
+    // Tạo đối tượng chỉ chứa các trường đã thay đổi
+    const updatedFields: Partial<Medicine> = {};
+    if (medicine.medicine_name !== medicineName) {
+      updatedFields.medicine_name = medicineName;
+    }
+    if (medicine.sale_price !== parseFloat(salePrice)) {
+      updatedFields.sale_price = parseFloat(salePrice);
+    }
+    if (medicine.unit !== unit) {
+      updatedFields.unit = unit;
+    }
+
+    // Nếu không có thay đổi, không gửi yêu cầu API
+    if (Object.keys(updatedFields).length === 0) {
+      Alert.alert("Thông báo", "Không có thay đổi nào để cập nhật.");
+      setIsEditing(false);
+      return;
+    }
 
     try {
-      const response = await updateMedicine(Number(id), updatedMedicine); // Gửi yêu cầu API để cập nhật thuốc
-      console.log("Response nhạn được bên giao diện: ", response);
+      // Gửi yêu cầu API với chỉ các trường đã thay đổi
+      const response = await updateMedicine(Number(id), updatedFields);
+
       if (response.success) {
-        setMedicine({ ...response.data, id: medicine?.id });
+        // Cập nhật trạng thái local với các giá trị mới
+        setMedicine((prev) => ({
+          ...prev,
+          ...updatedFields,
+        }));
         setIsEditing(false);
         Alert.alert("Cập nhật thành công", "Thông tin thuốc đã được cập nhật.");
       } else {
         Alert.alert(
           "Lỗi",
-          response.errorMessage || "Có lỗi xảy ra khi thêm thuốc."
+          response.errorMessage || "Có lỗi xảy ra khi cập nhật thuốc."
         );
       }
     } catch (error: any) {
-      console.error("Error updating medicine:", error.response.data.errorMessage);
+      console.error("Error updating medicine:", error.message);
       Alert.alert("Lỗi", "Có lỗi xảy ra khi cập nhật thuốc.");
     }
   };
