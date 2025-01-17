@@ -1,26 +1,20 @@
 import { ImportReceipt } from "@/constants/types";
 import api from "./apiConfig";
 
-export const getIRList = async (token: string) => {
+export const getIRList = async () => {
   try {
     const response = await api.get('/warehouses/import-receipt-list/');
-    return response.data;
+    return { success: true, data: response.data};
   } catch (error: any) {
-    if (error.response) {
-      console.error('Error response:', error.response.data);
-      throw new Error(error.response.data.detail || 'Unknown error');
-    } else if (error.request) {
-      console.error('Error request:', error.request);
-      throw new Error('No response from server');
-    } else {
-      console.error('Error message:', error.message);
-      throw new Error(error.message);
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };
 // Hàm tìm kiếm phiếu nhập
 export const searchImportReceipts = async (
-  token: string,
   startDate: string,
   endDate: string,
   employeeName: string,
@@ -58,21 +52,16 @@ export const searchImportReceipts = async (
     console.log("Response from API:", response);
 
     // Trả về dữ liệu nhận được từ API
-    return response.data.data;  // Giả sử API trả về data trong trường `data`
+    return { success: true, data: response.data};
   } catch (error: any) {
-    // Nếu có lỗi từ phản hồi, log và trả về lỗi
-    if (error.response) {
-      console.error("Error response:", error.response.data);
-      return error.response.data;  // Trả về thông tin lỗi từ server
-    } else {
-      // Nếu không có phản hồi từ server, log và trả về lỗi chung
-      console.error("Error:", error.message);
-      return { errorMessage: error.message };
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };
 export const searchEmployeeByRole = async (
-  token: string,
   role: string,
 ) => {
   try {
@@ -96,17 +85,13 @@ export const searchEmployeeByRole = async (
     console.log("Response from API:", response);
 
     // Trả về dữ liệu nhận được từ API
-    return response.data.data;  // Giả sử API trả về data trong trường `data`
+   return { success: true, data: response.data};
   } catch (error: any) {
-    // Nếu có lỗi từ phản hồi, log và trả về lỗi
-    if (error.response) {
-      console.error("Error response:", error.response.data);
-      return error.response.data;  // Trả về thông tin lỗi từ server
-    } else {
-      // Nếu không có phản hồi từ server, log và trả về lỗi chung
-      console.error("Error:", error.message);
-      return { errorMessage: error.message };
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };
 
@@ -114,23 +99,17 @@ export const searchEmployeeByRole = async (
 export const createIR = async (token: string, IRData: ImportReceipt) => {
   try {
     const response = await api.post('/warehouses/import-receipts/',{IRData});
-    return response.data;
+    return { success: true, data: response.data};
   } catch (error: any) {
-    if (error.response) {
-      console.error('Error response:', error.response.data);
-      throw new Error(error.response.data.detail || 'Unknown error');
-    } else if (error.request) {
-      console.error('Error request:', error.request);
-      throw new Error('No response from server');
-    } else {
-      console.error('Error message:', error.message);
-      throw new Error(error.message);
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };
 // Hàm cập nhật chi tiết phiếu nhập theo id phiếu nhập
 export const updateIR = async (
-  token: string,
   id: number,
   IRData: ImportReceipt
 ) => {
@@ -147,20 +126,13 @@ export const updateIR = async (
       dataToUpdate
     );
     console.log("response cập nhật phiếu nhập 11 ", response);
-    return response.data;
+    return { success: true, data: response.data};
   } catch (error: any) {
-    if (error.response) {
-      console.error("Error response:", error.response.data);
-     throw new Error(error.response.data);
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
-   else if (error.request) {
-      console.error('Error request:', error.request);
-      throw new Error('No response from server');
-    } else {
-      console.error('Error message:', error.message);
-      throw new Error(error.message);
-    }
-    
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };
 // Hàm tạo phiếu nhập và chi tiết phiếu nhập
@@ -181,62 +153,44 @@ export const updateIR = async (
 //     }
 //   }
 // };
-export const createImportReceiptAndDetails = async (token: string, IRData: any) => {
+export const createImportReceiptAndDetails = async (IRData: any) => {
   try {
     // Gọi API /ir-create để tạo phiếu nhập và chi tiết phiếu nhập
-    const response = await api.post('/ir-create', IRData);
-
+    const response = await api.post('/warehouses/ir-create/', IRData);
+    console.log("chi tiết gửi đi",response)
     // Trả về kết quả thành công
-    return response.data;
+    return { success: true, data: response.data};
   } catch (error: any) {
-    if (error.response) {
-      // Xử lý lỗi từ server (có response trả về)
-      console.error('Error response:', error.response.data);
-      throw new Error(error.response.data.detail || 'Unknown error');
-    } else if (error.request) {
-      // Xử lý trường hợp không có phản hồi từ server
-      console.error('Error request:', error.request);
-      throw new Error('No response from server');
-    } else {
-      // Xử lý lỗi khác
-      console.error('Error message:', error.message);
-      throw new Error(error.message);
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };
-export const detailIR = async (token: string, IRId: number) => {
+export const detailIR = async (IRId: number) => {
   try {
     const response = await api.get(`/warehouses/import-receipt-list/${IRId}/`);
-    return response.data;
+    return { success: true, data: response.data};
   } catch (error: any) {
-    if (error.response) {
-      console.error('Error response:', error.response.data);
-      throw new Error(error.response.data.detail || 'Unknown error');
-    } else if (error.request) {
-      console.error('Error request:', error.request);
-      throw new Error('No response from server');
-    } else {
-      console.error('Error message:', error.message);
-      throw new Error(error.message);
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };
 
 
-export const deleteIR = async (token: string, IRId: number) => {
+export const deleteIR = async ( IRId: number) => {
   try {
     const response = await api.delete(`/warehouses/import-receipts/${IRId}/`);
-    return response.data;
+    return { success: true, data: response.data};
   } catch (error: any) {
-    if (error.response) {
-      console.error('Error response:', error.response.data);
-      throw new Error(error.response.data.detail || 'Unknown error');
-    } else if (error.request) {
-      console.error('Error request:', error.request);
-      throw new Error('No response from server');
-    } else {
-      console.error('Error message:', error.message);
-      throw new Error(error.message);
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
     }
+    return { success: false, data: "Có lỗi xảy ra"};
   }
 };

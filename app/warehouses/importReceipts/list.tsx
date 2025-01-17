@@ -34,11 +34,16 @@ const ImportReceiptList = () => {
   const fetchAllReceipts = async () => {
     try {
       setLoading(true);
-      const response = await getIRList(token);
-      setReceiptList(response.data || []);
-    } catch (error) {
-      console.error("Error fetching receipts:", error);
-      Alert.alert("Lỗi", "Không thể tải danh sách phiếu nhập.");
+      const response = await getIRList();
+      if (response.success) {
+        // if (Array.isArray(data.data)) {
+        setReceiptList(response.data.data || []);
+      } else {
+        Alert.alert("Lỗi", response.errorMessage);
+        // router.replace("/warehouses/warehouses/list");
+      }
+    } catch (error: any) {
+      Alert.alert("Lỗi", error || "Không thể lấy danh sách phiếu nhập.");
     } finally {
       setLoading(false);
     }
@@ -64,20 +69,21 @@ const ImportReceiptList = () => {
     try {
       setLoading(true);
       const response = await searchImportReceipts(
-        token,
-        startDate ? startDate.toISOString().split("T")[0] : null,
-        endDate ? endDate.toISOString().split("T")[0] : null,
-        employeeName,
-        warehouseName,
+        formatDateForApi(startDate) ?? "",
+        formatDateForApi(endDate) ?? "",
+        employeeName ?? "",
+        warehouseName ?? "",
         isApproved ? "true" : "false"
       );
-      setReceiptList(response || []);
-    } catch (error) {
-      console.error(
-        "Error searching receipts:",
-        error.response?.data.errorMessage
-      );
-      Alert.alert("Lỗi", error.response?.data.errorMessage || "Đã xảy ra lỗi.");
+      if (response.success) {
+        console.log("tìm keiems nè", response.data.data);
+        setReceiptList(response.data.data || []);
+      } else {
+        Alert.alert("Thông báo lỗi", response.errorMessage);
+        // router.replace("/warehouses/warehouses/list");
+      }
+    } catch (error: any) {
+      Alert.alert("Lỗi", error || "Đã xảy ra lỗi.");
     } finally {
       setLoading(false);
     }
@@ -101,7 +107,7 @@ const ImportReceiptList = () => {
   const renderReceiptItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push(`warehouses/importReceipts/${item.id}`)}
+      onPress={() => router.push(`/warehouses/importReceipts/${item.id}`)}
     >
       <Text style={styles.receiptId}>
         <Ionicons name="document-text-outline" size={16} color="#4CAF50" /> Mã
@@ -140,6 +146,14 @@ const ImportReceiptList = () => {
 
   const formatDate = (date) =>
     date ? date.toLocaleDateString("vi-VN") : "Chọn ngày";
+  const formatDateForApi = (date) => {
+    if (!date) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
+    const day = String(date.getDate()).padStart(2, "0");
+    console.log(`${year}-${month}-${day}`);
+    return `${year}-${month}-${day}`;
+  };
 
   if (loading) {
     return (
