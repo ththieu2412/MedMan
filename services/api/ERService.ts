@@ -14,6 +14,20 @@ export const getERList = async () => {
     return { success: false, data: "Có lỗi xảy ra"};
   }
 };
+
+export const getPrescriptionNoER = async () => {
+  try {
+    const response = await api.get('/warehouse/unexportedprescription-list/');
+    console.log("response",response)
+    return { success: true, data: response.data};
+  } catch (error: any) {
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage};
+    }
+    return { success: false, data: "Có lỗi xảy ra"};
+  }
+};
 // Hàm tìm kiếm phiếu nhập
 export const searchExportReceipts = async (
   startDate: string,
@@ -101,15 +115,25 @@ export const createER = async (ERData: any) => {
   try {
     const response = await api.post(' /warehouses/warehouse/',{ERData});
     console.log("datadfsdfsff",ERData)
-    return { success: true, data: response.data};
-  } catch (error: any) {
-    if (error.errorMessage) {
-      const errorMessage = error.errorMessage;
-      return { success: false, errorMessage};
+    if (response?.data?.id) {
+      console.log("Cập nhật thành công:", response.data);
+      return { success: true, data: response.data };
     }
-    return { success: false, data: "Có lỗi xảy ra"};
+    else {
+      return { success: false, data: response.data };
+    }
+  } catch (error: any) {
+    if (error.response) {
+      const { data, status } = error.response;
+      console.log("Lỗi từ API:", data);
+      return { success: false, errorMessage: data || "Có lỗi xảy ra", status };
+    }
+    // Lỗi không phải từ API (ví dụ: lỗi mạng)
+    console.error("Lỗi không phải từ API:", error.message);
+    return { success: false, errorMessage: "Lỗi không xác định xảy ra", error };
   }
 };
+
 // Hàm cập nhật chi tiết phiếu nhập theo id phiếu nhập
 // export const updateERAndDetails = async (
 //   id: number,
@@ -157,17 +181,18 @@ export const createER = async (ERData: any) => {
 export const updateERAndDetails = async (id: number, ERData: any) => {
   try {
     // Lọc ra chỉ những trường cần thiết
-    const dataToUpdate = {
+      const dataToUpdate = {
       id: ERData.id,
       employee: ERData.employee,
       prescription: ERData.prescription,
       is_approved: ERData.is_approved,
       warehouse: ERData.warehouse,
-      details: {
-        export_receipt: ERData.details.export_receipt,
-        medicine: ERData.details.medicine,
-        quantity: ERData.details.quantity,
-      },
+      // Đảm bảo details là mảng và giữ nguyên cấu trúc
+      details: ERData.details.map((detail: any) => ({
+        export_receipt: detail.export_receipt,
+        medicine: detail.medicine,
+        quantity: detail.quantity,
+      })),
     };
 
     console.log("toàn bộ dữ liệu gửi đi:", dataToUpdate);
