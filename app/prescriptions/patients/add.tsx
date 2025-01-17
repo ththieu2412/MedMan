@@ -61,7 +61,7 @@ const SettingScreen = () => {
       Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin!");
       return;
     }
-    Alert.alert("Xác nhận", "Bạn có muốn tạo nhân viên mới?", [
+    Alert.alert("Xác nhận", "Bạn có muốn tạo bệnh nhân mới?", [
       {
         text: "Đồng ý",
         onPress: async () => {
