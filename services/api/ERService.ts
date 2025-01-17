@@ -111,41 +111,92 @@ export const createER = async (ERData: any) => {
   }
 };
 // Hàm cập nhật chi tiết phiếu nhập theo id phiếu nhập
-export const updateERAndDetails = async (
-  id: number,
-  ERData: any
-) => {
+// export const updateERAndDetails = async (
+//   id: number,
+//   ERData: any
+// ) => {
+//   try {
+//     // Lọc ra chỉ những trường cần thiết
+//     const dataToUpdate = {
+//       id:ERData.id,
+//       employee:ERData.employee,
+//       prescription: ERData.prescription,
+//       is_approved: ERData.is_approved,
+//       warehouse:ERData.warehouse,
+//       details:{
+//         export_receipt:ERData.details.export_receipt,
+//         medicine:ERData.details.medicine,
+//         quantity: ERData.detail.quantity
+//       }
+//     };
+//     console.log("toàn bộ sữ liêu",dataToUpdate)
+//     console.log("response cập nhật phiếu nhập 10 ");
+//     // Gửi API với dữ liệu đã lọc
+//     const response = await api.put(
+//       `/warehouses/warehouse/${id}/`,
+//       dataToUpdate
+//     );
+//     if(response?.data?.id){
+//       console.log("response cập nhật phiếu nhập 11 ", response);
+//       console.log("suscess")
+//       return { success: true, data: response.data};
+//     }
+//     else{
+//       return { success: false, data: response.data};
+//     }
+    
+//   } catch (error: any) {
+//     if (error.errorMessage) {
+//       const errorMessage = error.errorMessage;
+//       return { success: false, errorMessage};
+//     }
+//     return { success: false, data: "Có lỗi xảy ra"};
+//   }
+// };
+
+export const updateERAndDetails = async (id: number, ERData: any) => {
   try {
     // Lọc ra chỉ những trường cần thiết
     const dataToUpdate = {
-      id:ERData.id,
-      employee:ERData.employee,
+      id: ERData.id,
+      employee: ERData.employee,
       prescription: ERData.prescription,
       is_approved: ERData.is_approved,
-      warehouse_id:ERData.warehouse_id,
-      details:{
-        id:ERData.details.id,
-        medicine:ERData.details.medicine,
-        quantity: ERData.detail.quantity
-      }
+      warehouse: ERData.warehouse,
+      details: {
+        export_receipt: ERData.details.export_receipt,
+        medicine: ERData.details.medicine,
+        quantity: ERData.details.quantity,
+      },
     };
-    console.log("toàn bộ sữ liêu",dataToUpdate)
-    console.log("response cập nhật phiếu nhập 10 ");
+
+    console.log("toàn bộ dữ liệu gửi đi:", dataToUpdate);
+
     // Gửi API với dữ liệu đã lọc
-    const response = await api.put(
-      `/warehouses/warehouse/${id}/`,
-      dataToUpdate
-    );
-    console.log("response cập nhật phiếu nhập 11 ", response);
-    return { success: true, data: response.data};
-  } catch (error: any) {
-    if (error.errorMessage) {
-      const errorMessage = error.errorMessage;
-      return { success: false, errorMessage};
+    const response = await api.put(`/warehouses/warehouse/${id}/`, dataToUpdate);
+
+    // Kiểm tra phản hồi từ server
+    if (response?.data?.id) {
+      console.log("Cập nhật thành công:", response.data);
+      return { success: true, data: response.data };
+    } else {
+      return { success: false, data: response.data };
     }
-    return { success: false, data: "Có lỗi xảy ra"};
+  } catch (error: any) {
+    // Kiểm tra xem lỗi có phải từ response của API
+    if (error.response) {
+      const { data, status } = error.response;
+      console.log("Lỗi từ API:", data);
+      return { success: false, errorMessage: data?.detail || "Có lỗi xảy ra", status };
+    }
+
+    // Lỗi không phải từ API (ví dụ: lỗi mạng)
+    console.error("Lỗi không phải từ API:", error.message);
+    return { success: false, errorMessage: "Lỗi không xác định xảy ra", error };
   }
 };
+
+
 // Hàm tạo phiếu nhập và chi tiết phiếu nhập
 // export const createIRAndIRDetail = async (token: string, IRData: ImportReceipt) => {
 //   try {

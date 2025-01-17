@@ -25,6 +25,7 @@ import {
 import { useToken } from "@/hooks/useToken";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker"; // Import RNPicker
+import { fontSize } from "@/constants/dimensions";
 
 const ExportReceiptDetails = () => {
   const [exportDetails, setExportDetails] = useState<any>(null);
@@ -34,6 +35,7 @@ const ExportReceiptDetails = () => {
   const [isProductEditable, setIsProductEditable] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [newMedicine, setNewMedicine] = useState<string>("");
+  const [newStatus, setNewStatus] = useState<boolean>(false);
   const [newQuantity, setNewQuantity] = useState<number>(1);
   const [employeeName, setEmployeeName] = useState<string | null>(null);
   const [warehouseName, setWarehouseName] = useState<string | null>(null);
@@ -54,7 +56,7 @@ const ExportReceiptDetails = () => {
       if (data?.data?.id) {
         setExportDetails(data.data);
         setError(null);
-
+        setNewStatus(data.data.is_approved);
         // Gọi fetchAdditionalDetails ngay sau khi exportDetails được cập nhật
         await fetchAdditionalDetails(data.data);
       } else {
@@ -66,7 +68,10 @@ const ExportReceiptDetails = () => {
       setLoading(false);
     }
   };
-
+  const handleDiscardChanges = () => {
+    setIsEditing(false); // Exit edit mode
+    fetchExportDetails();
+  };
   const fetchAdditionalDetails = async (exportData: any) => {
     try {
       // Lấy thông tin nhân viên
@@ -137,7 +142,7 @@ const ExportReceiptDetails = () => {
         is_approved: value,
       };
       // Giả sử đây là API updateERAndDetails
-      await updateERAndDetails(id, updatedData); // Gọi API để cập nhật trạng thái
+      await updateERAndDetails(Number(id), updatedData); // Gọi API để cập nhật trạng thái
       setExportDetails(updatedData);
     } catch (error: any) {
       Alert.alert(
@@ -148,25 +153,67 @@ const ExportReceiptDetails = () => {
   };
 
   // Add product to export receipt
+  // const handleAddProduct = () => {
+  //   if (!newMedicine) {
+  //     Alert.alert("Lỗi", "Vui lòng chọn thuốc.");
+  //     return;
+  //   }
+  //   const selectedMedicine = medicines.find(
+  //     (medicine) => medicine.value === newMedicine
+  //   );
+  //   const newProduct = {
+  //     medicine: selectedMedicine?.value || 0,
+  //     quantity: newQuantity,
+  //     export_receipt: Number(id),
+  //   };
+
+  //   setExportDetails((prevDetails: any) => ({
+  //     ...prevDetails,
+  //     details: [...prevDetails.details, newProduct],
+  //   }));
+  //   console.log("dữ liệu đyà đủ", exportDetails);
+  //   setModalVisible(false);
+  // };
+
   const handleAddProduct = () => {
     if (!newMedicine) {
       Alert.alert("Lỗi", "Vui lòng chọn thuốc.");
       return;
     }
+    console.log("thuốc nè", newMedicine);
+    // Tìm thông tin thuốc đã chọn
     const selectedMedicine = medicines.find(
       (medicine) => medicine.value === newMedicine
     );
+
+    if (!selectedMedicine) {
+      Alert.alert("Lỗi", "Thuốc được chọn không tồn tại.");
+      return;
+    }
+
+    // Tạo sản phẩm mới
     const newProduct = {
-      medicine_name: selectedMedicine?.label || "Unknown",
+      medicine: selectedMedicine.value,
       quantity: newQuantity,
+      export_receipt: Number(id),
     };
 
-    setExportDetails((prevDetails: any) => ({
-      ...prevDetails,
-      details: [...prevDetails.details, newProduct],
-    }));
+    // Cập nhật danh sách chi tiết
+    setExportDetails((prevDetails: any) => {
+      const updatedDetails = {
+        ...prevDetails,
+        details: [...prevDetails.details, newProduct],
+      };
+
+      // Kiểm tra sau khi cập nhật
+      console.log("Danh sách sau khi thêm sản phẩm:", updatedDetails);
+      return updatedDetails;
+    });
+
+    // Đóng modal
     setModalVisible(false);
   };
+
   const handleDelete = async () => {
     Alert.alert(
       "Xác nhận",
@@ -225,6 +272,9 @@ const ExportReceiptDetails = () => {
       </View>
     );
   }
+  if (!exportDetails || !exportDetails.details) {
+    return <Text>Không có dữ liệu chi tiết phiếu xuất.</Text>;
+  }
 
   return (
     <View style={styles.container}>
@@ -235,21 +285,40 @@ const ExportReceiptDetails = () => {
         }
       >
         <Text style={styles.title}>Chi Tiết Phiếu Xuất</Text>
-        <TouchableOpacity
-          style={styles.editApproveButton}
-          onPress={() => {
-            setIsEditing(!isEditing); // Bật/tắt chế độ chỉnh sửa
-          }}
-        >
-          <Ionicons
-            name={isEditing ? "checkmark-done-circle" : "create"}
-            size={24}
-            color="#1a73e8"
-          />
-        </TouchableOpacity>
-
+        {!newStatus && (
+          <TouchableOpacity
+            style={styles.editApproveButton}
+            onPress={() => {
+              if (isEditing) {
+                // Show alert to confirm discarding changes
+                Alert.alert(
+                  "Discard Changes",
+                  "Bạn chưa lưu, bạn có muốn thoát không?",
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Discard",
+                      onPress: handleDiscardChanges, // Exit edit mode
+                    },
+                  ]
+                );
+              } else {
+                // Directly enable editing mode
+                setIsEditing(true);
+              }
+            }}
+          >
+            <Ionicons
+              name={isEditing ? "checkmark-done-circle" : "create"}
+              size={24}
+              color="#1a73e8"
+            />
+          </TouchableOpacity>
+        )}
+        // Thay đổi trong phần JSX
         {exportDetails && (
           <>
+            {/* Hiển thị thông tin mã phiếu */}
             <View style={styles.detailContainer}>
               <Text style={styles.label}>Mã Phiếu Xuất:</Text>
               <Text style={styles.value}>{exportDetails.id}</Text>
@@ -278,43 +347,145 @@ const ExportReceiptDetails = () => {
                 {employeeName || "Không xác định"}
               </Text>
             </View>
+
+            {/* Hiển thị trạng thái phiếu */}
             <View style={styles.detailContainer}>
               <Text style={styles.label}>Trạng thái:</Text>
-              <Switch
-                value={exportDetails.is_approved}
-                onValueChange={toggleApproveStatus}
-                trackColor={{ false: "#767577", true: "#81b0ff" }}
-                thumbColor={exportDetails.is_approved ? "#f5dd4b" : "#f4f3f4"}
-              />
-              <Text style={styles.value}>
-                {exportDetails.is_approved ? "Duyệt" : "Chưa duyệt"}
-              </Text>
+              {isEditing ? (
+                <Switch
+                  value={exportDetails.is_approved}
+                  onValueChange={(value) =>
+                    setExportDetails((prev) => ({
+                      ...prev,
+                      is_approved: value,
+                    }))
+                  }
+                  trackColor={{ false: "#767577", true: "#81b0ff" }}
+                  thumbColor={exportDetails.is_approved ? "#f5dd4b" : "#f4f3f4"}
+                />
+              ) : (
+                <Text style={styles.value}>
+                  {exportDetails.is_approved ? "Duyệt" : "Chưa duyệt"}
+                </Text>
+              )}
             </View>
-            {/* Product List */}
+
+            {isEditing && (
+              <TouchableOpacity
+                style={styles.addProductButton}
+                onPress={() => setModalVisible(true)}
+              >
+                <Text style={{ fontSize: 16 }}>Thêm chi tiết</Text>
+                <Ionicons name="add-circle" size={30} color="#1a73e8" />
+              </TouchableOpacity>
+            )}
+
+            {/* Hiển thị danh sách sản phẩm */}
             <View>
               {exportDetails.details.map((detail: any, index: number) => (
                 <View key={index} style={styles.productDetail}>
                   <Text style={styles.productDetailText}>
-                    Thuốc: {detail.medicine_name} - Số lượng: {detail.quantity}
+                    Thuốc: {detail.medicine_name}
                   </Text>
+                  <Text style={styles.productDetailText}>
+                    Gía: {detail.price}
+                  </Text>
+                  <Text style={styles.productDetailText}>
+                    Bảo hiểm hỗ trợ: {detail.insurance_covered}
+                  </Text>
+                  <Text style={styles.productDetailText}>
+                    Bảo hiểm trả: {detail.ins_amount}
+                  </Text>
+                  <Text style={styles.productDetailText}>
+                    Bệnh nhân trả: {detail.patient_pay}
+                  </Text>
+                  <View style={styles.detailContainer}>
+                    <Text style={styles.label}>Số lượng:</Text>
+                    {isEditing ? (
+                      <TextInput
+                        style={styles.input}
+                        value={String(detail.quantity)}
+                        onChangeText={(text) => {
+                          const updatedDetails = [...exportDetails.details];
+                          updatedDetails[index].quantity = Number(text);
+                          setExportDetails((prev) => ({
+                            ...prev,
+                            details: updatedDetails,
+                          }));
+                        }}
+                        keyboardType="numeric"
+                      />
+                    ) : (
+                      <Text style={styles.value}>{detail.quantity}</Text>
+                    )}
+                  </View>
+
+                  {/* Delete button to remove the product from the export receipt */}
+                  {isEditing && (
+                    <TouchableOpacity
+                      style={styles.deleteProductButton}
+                      onPress={() => {
+                        const updatedDetails = exportDetails.details.filter(
+                          (item, idx) => idx !== index
+                        );
+                        setExportDetails((prev) => ({
+                          ...prev,
+                          details: updatedDetails,
+                        }));
+                      }}
+                    >
+                      <Ionicons name="trash" size={24} color="red" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               ))}
             </View>
+
+            {/* Nút lưu thông tin */}
+            {isEditing && (
+              <MyButton
+                title="Lưu Thay Đổi"
+                onPress={async () => {
+                  try {
+                    const response = await updateERAndDetails(
+                      Number(id),
+                      exportDetails
+                    );
+                    console.log("thay đổi danh sách cuối cùng", exportDetails);
+                    if (response.success) {
+                      console.log("thay đổi", exportDetails);
+                      Alert.alert("Thành công", "Phiếu xuất đã được cập nhật.");
+                    } else {
+                      Alert.alert(
+                        `Lỗi: ${
+                          response.errorMessage || "Không thể cập nhật phiếu."
+                        }`
+                      );
+                    }
+                    // console.log("thay đổi", exportDetails);
+                    // console.log("thay đổi blalaa", exportDetails.id);
+                    // Alert.alert("Thành công", "Phiếu xuất đã được cập nhật.");
+                    setIsEditing(false); // Thoát chế độ chỉnh sửa
+                    console.log("thay đổi blalaa");
+                  } catch (err: any) {
+                    // Alert.alert(
+                    //   "Lỗi",
+                    //   err.message || "Không thể lưu thay đổi."
+                    // );
+                    console.log("lỗi");
+                  }
+                }}
+                buttonStyle={styles.updateButton}
+              />
+            )}
           </>
         )}
       </ScrollView>
 
       {/* Add Product Button */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.addProductButton}
-          onPress={() => setModalVisible(true)}
-        >
-          <Ionicons name="add-circle" size={70} color="#1a73e8" />
-        </TouchableOpacity>
-
         {/* Delete Button */}
-        {!exportDetails?.is_approved && (
+        {!newStatus && (
           <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
             <Text style={styles.deleteButtonText}>Xóa Phiếu Xuất</Text>
           </TouchableOpacity>
@@ -383,14 +554,14 @@ const styles = StyleSheet.create({
     height: 50,
     width: "100%",
   },
-  input: {
-    padding: 8,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    marginTop: 5,
-    fontSize: 16,
-  },
+  // input: {
+  //   padding: 8,
+  //   borderWidth: 1,
+  //   borderColor: "#ccc",
+  //   borderRadius: 5,
+  //   marginTop: 5,
+  //   fontSize: 16,
+  // },
   detailContainer: {
     flexDirection: "row",
     marginBottom: 15,
@@ -427,10 +598,10 @@ const styles = StyleSheet.create({
   productDetailText: {
     fontSize: 14,
   },
-  updateButton: {
-    backgroundColor: "#4caf50",
-    marginTop: 20,
-  },
+  // updateButton: {
+  //   backgroundColor: "#4caf50",
+  //   marginTop: 20,
+  // },
   // deleteButton: {
   //   backgroundColor: "#d32f2f",
   //   marginTop: 20,
@@ -516,19 +687,59 @@ const styles = StyleSheet.create({
   },
   addProductButton: {
     alignSelf: "center",
-    marginBottom: 10,
+    // marginBottom: 10,
+    marginLeft: 160,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
   },
+  deleteProductButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "#f8d7da", // light red background
+    padding: 5,
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // editApproveButton: {
+  //   position: "absolute",
+  //   top: 20,
+  //   right: 20,
+  //   padding: 10,
+  //   backgroundColor: "#f0f0f0",
+  //   borderRadius: 5,
+  //   shadowColor: "#000",
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.1,
+  //   shadowRadius: 2,
+  // },
   editApproveButton: {
     position: "absolute",
-    top: 20,
-    right: 20,
+    top: -10,
+    right: -10,
     padding: 10,
     backgroundColor: "#f0f0f0",
     borderRadius: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+  },
+  input: {
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    marginTop: 5,
+    fontSize: 16,
+  },
+  updateButton: {
+    backgroundColor: "#4caf50",
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
   },
 });
 
