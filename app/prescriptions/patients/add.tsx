@@ -49,6 +49,13 @@ const SettingScreen = () => {
     }
   }, [user]);
 
+  const convertDateFormat = (dateString) => {
+    // Tách ngày, tháng, năm từ chuỗi gốc
+    const [day, month, year] = dateString.split("-");
+    // Trả về định dạng mới
+    return `${year}-${month}-${day}`;
+  };
+
   const handleEdit = useCallback(async () => {
     if (
       !profile.address ||
@@ -67,9 +74,15 @@ const SettingScreen = () => {
         text: "Đồng ý",
         onPress: async () => {
           try {
-            console.log("Profile Patient: ", profile);
-            const response = await createPatient({
+            const formattedProfile = {
               ...profile,
+              date_of_birth: convertDateFormat(profile.date_of_birth), // Format lại ngày
+            };
+
+            console.log("Profile Patient: ", formattedProfile);
+
+            const response = await createPatient({
+              ...formattedProfile,
               employee,
             });
 
@@ -123,7 +136,7 @@ const SettingScreen = () => {
   const handleDateConfirm = (date) => {
     setProfile((prev) => ({
       ...prev,
-      date_of_birth: format(date, "yyyy-MM-dd"),
+      date_of_birth: format(date, "dd-MM-yyyy"),
     }));
     hideDatePicker();
   };
