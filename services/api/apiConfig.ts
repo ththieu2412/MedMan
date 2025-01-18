@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext"; // Import useAuth từ AuthCont
 
 
 
-const BASE_URL = 'http://192.168.1.96:8000/api';
+const BASE_URL = 'http://10.241.11.117:8000/api';
 
 
 
