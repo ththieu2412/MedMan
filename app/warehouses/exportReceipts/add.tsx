@@ -7,11 +7,19 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
-import { getPrescriptionNoER, getWarehouseList } from "@/services/api"; // API function để lấy đơn thuốc và nhà kho
+import {
+  createER,
+  employeeDetail,
+  getPrescriptionNoER,
+  getWarehouseList,
+  searchEmployeeByRole,
+} from "@/services/api"; // API function để lấy đơn thuốc và nhà kho
+import { useAuth } from "@/context/AuthContext";
 
 const AddExportReceiptScreen = () => {
   const [prescriptionList, setPrescriptionList] = useState([]);
@@ -19,8 +27,10 @@ const AddExportReceiptScreen = () => {
   const [selectedPrescription, setSelectedPrescription] = useState(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
   const [loading, setLoading] = useState(true); // Loading state
+  const [employee, setEmployee] = useState(null);
   const router = useRouter();
-
+  const user = useAuth();
+  const employee_id = user.user?.employee_id;
   // Lấy danh sách đơn thuốc chưa có phiếu nhập
   const fetchPrescriptions = async () => {
     try {
@@ -28,7 +38,7 @@ const AddExportReceiptScreen = () => {
       const response = await getPrescriptionNoER();
       console.log("Prescription Response:", response); // Log để kiểm tra dữ liệu trả về
       if (response.success) {
-        setPrescriptionList(response.data.details || []);
+        setPrescriptionList(response.data || []);
       } else {
         Alert.alert(
           "Lỗi",
@@ -49,9 +59,9 @@ const AddExportReceiptScreen = () => {
       const response = await getWarehouseList();
       console.log("Warehouse Response:", response); // Log để kiểm tra dữ liệu trả về
       // Kiểm tra xem dữ liệu có phải là mảng không
-      if (response.success && Array.isArray(response.data)) {
+      if (response.success && Array.isArray(response.data.data)) {
         setWarehouseList(response.data.data || []);
-        console.log("Warehouse Response:", response.data.data.data.data);
+        console.log("Warehouse Response:", response.data.data);
       } else {
         Alert.alert(
           "Lỗi",
@@ -65,24 +75,64 @@ const AddExportReceiptScreen = () => {
       // Không cần set lại loading ở đây, vì đã set loading = false trong `fetchPrescriptions()`
     }
   };
-
+  const fetchEmployeeDetail = async () => {
+    try {
+      const response = await employeeDetail(Number(employee_id));
+      if (response.success) {
+        if (response?.data?.id) {
+          setEmployee(response.data?.full_name || "");
+        } else {
+        }
+      } else {
+        Alert.alert("Lỗi", "Có lỗi xảy ra khi tải thông tin nhân viên.");
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", "Có lỗi xảy ra khi tải thông tin nhân viên.");
+    }
+  };
   useEffect(() => {
+    fetchEmployeeDetail();
     fetchPrescriptions();
     fetchWarehouses();
   }, []);
 
   // Xử lý khi người dùng chọn đơn thuốc và nhấn thêm phiếu xuất
-  const handleAddExportReceipt = () => {
+  const handleAddExportReceipt = async () => {
     if (!selectedPrescription || !selectedWarehouse) {
       Alert.alert("Lỗi", "Vui lòng chọn một đơn thuốc và một nhà kho.");
       return;
     }
-    // Xử lý thêm phiếu xuất (ví dụ: gửi API tạo phiếu xuất)
-    Alert.alert(
-      "Thông báo",
-      `Đã chọn đơn thuốc: ${selectedPrescription} và kho: ${selectedWarehouse}`
-    );
-    // router.push("/warehouses/exportReceipts"); // Chuyển hướng về danh sách phiếu xuất
+
+    try {
+      const payload = {
+        prescription: Number(selectedPrescription),
+        warehouse: Number(selectedWarehouse),
+        employee: Number(employee_id), // Gửi kèm thông tin nhân viên
+      };
+      console.log("phản ", payload);
+      const response = await createER(payload); // Gọi API tạo phiếu xuất
+      console.log("phản ", response.data.data);
+      if (response.success) {
+        console.log("susscess");
+        if (response.data.id) {
+          Alert.alert("Thành công", "Phiếu xuất đã được thêm thành công.");
+          router.push("/warehouses/exportReceipts/list");
+          console.log("phảnjjj ", response.data.data);
+        } else {
+          console.log("phảnjjj ", response.data);
+        }
+        // Chuyển hướng về danh sách phiếu xuất
+      } else {
+        console.log("phản lỗi  ", response.data);
+        Alert.alert(
+          "Lỗi",
+          response.errorMessage || "Không thể thêm phiếu xuất."
+        );
+      }
+    } catch (error) {
+      console.log("phản lỗi catch ", error);
+      Alert.alert("Lỗi", "Có lỗi xảy ra khi thêm phiếu xuất.");
+    }
   };
 
   if (loading) {
@@ -96,7 +146,15 @@ const AddExportReceiptScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Thêm Phiếu Xuất Kho</Text>
-
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Nhân viên:</Text>
+        <TextInput
+          style={styles.input}
+          value={employee || ""}
+          editable={false}
+          placeholder="Thông tin nhân viên..."
+        />
+      </View>
       <View style={styles.formContainer}>
         <Text style={styles.label}>Chọn Đơn Thuốc</Text>
         <Picker
@@ -127,7 +185,7 @@ const AddExportReceiptScreen = () => {
             warehouseList.map((warehouse) => (
               <Picker.Item
                 key={warehouse.id}
-                label={`Kho ${warehouse.warehouse_namename}`}
+                label={`Kho ${warehouse.warehouse_name}`}
                 value={warehouse.id}
               />
             ))
@@ -195,6 +253,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  input: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    fontSize: 16,
+  },
+  inputGroup: {
+    width: "100%",
+    marginBottom: 15,
   },
 });
 

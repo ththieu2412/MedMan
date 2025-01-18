@@ -26,6 +26,7 @@ import { useToken } from "@/hooks/useToken";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker"; // Import RNPicker
 import { fontSize } from "@/constants/dimensions";
+import { format } from "date-fns/format";
 
 const ExportReceiptDetails = () => {
   const [exportDetails, setExportDetails] = useState<any>(null);
@@ -322,7 +323,7 @@ const ExportReceiptDetails = () => {
             />
           </TouchableOpacity>
         )}
-        // Thay đổi trong phần JSX
+        
         {exportDetails && (
           <>
             {/* Hiển thị thông tin mã phiếu */}
@@ -345,7 +346,11 @@ const ExportReceiptDetails = () => {
             <View style={styles.detailContainer}>
               <Text style={styles.label}>Ngày Xuất:</Text>
               <Text style={styles.value}>
-                {new Date(exportDetails.export_date).toLocaleString()}
+                {/* {new Date(exportDetails.export_date).toLocaleString()} */}
+                {format(
+                  new Date(exportDetails.export_date),
+                  "dd/MM/yyyy HH:mm"
+                )}
               </Text>
             </View>
             <View style={styles.detailContainer}>
@@ -631,7 +636,7 @@ const styles = StyleSheet.create({
     height: 50,
     width: "100%",
   },
-  
+
   detailContainer: {
     flexDirection: "row",
     marginBottom: 15,

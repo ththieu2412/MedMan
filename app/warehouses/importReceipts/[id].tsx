@@ -369,8 +369,8 @@ const IRDetails = () => {
               <Icon name="pencil" size={24} color="#007bff" />
             </TouchableOpacity>
           )}
-          {productDetails.map((detail: any) => (
-            <View key={detail.id} style={styles.productDetail}>
+          {productDetails.map((detail: any, index: number) => (
+            <View key={detail.id || index} style={styles.productDetail}>
               <Text style={styles.productDetailText}>
                 Tên thuốc: {detail.medicine}
               </Text>
