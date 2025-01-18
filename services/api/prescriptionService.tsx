@@ -17,3 +17,23 @@ export const getPrescriptionList = async () => {
     }
   }
 };
+
+export const createPrescription = async (requestBody: object) => {
+  try {
+    const response = await api.post(
+      "/prescriptions/prescriptions/",
+      requestBody
+    );
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    if (error.errorMessage) {
+      const errorMessage = error.errorMessage;
+      return { success: false, errorMessage };
+    }
+    // Trả về lỗi mặc định nếu không có thông tin lỗi cụ thể
+    return {
+      success: false,
+      errorMessage: "Có lỗi xảy ra khi thêm đơn thuốc.",
+    };
+  }
+};

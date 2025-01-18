@@ -28,11 +28,7 @@ const PrescriptionsList = ({
       { text: "Hủy", style: "cancel" },
       {
         text: "Xóa",
-        onPress: () => {
-          // Giả sử bạn cần gọi API hoặc thực hiện việc xóa trong database ở đây
-          // Sau khi xóa, bạn có thể cập nhật lại danh sách prescription nếu cần
-          // (có thể thay thế `prescriptions` bằng API call)
-        },
+        onPress: () => {},
       },
     ]);
   };
@@ -52,8 +48,8 @@ const PrescriptionsList = ({
         <Text style={styles.namdiagnosis}>
           Tên bệnh: {item.diagnosis || "Không rõ"}
         </Text>
-        <Text>Bác sĩ: {item.details?.doctor?.full_name || "Không rõ"}</Text>
-        <Text>Bệnh nhân: {item.details?.patient?.full_name || "Không rõ"}</Text>
+        <Text>Bác sĩ: {item.doctor.full_name || "Không rõ"}</Text>
+        <Text>Bệnh nhân: {item.patient.full_name || "Không rõ"}</Text>
         <Text>
           Ngày kê đơn:{" "}
           {item.prescription_date
