@@ -24,6 +24,7 @@ export const createPatient = async (patient: Patient) => {
 
     return { success: true, data: response.data };
   } catch (error: any) {
+    console.log(error);
     if (error.errorMessage) {
       const errorMessage = error.errorMessage;
       return { success: false, errorMessage };

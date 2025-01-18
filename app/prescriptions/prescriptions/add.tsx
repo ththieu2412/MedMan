@@ -6,12 +6,17 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  FlatList,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { router } from "expo-router";
-import { Patient } from "@/types";
-import { getMedicineList, getPatients } from "@/services/api";
-import { Picker } from "@react-native-picker/picker"; // Import Picker
+import { Patient, Medicine } from "@/types";
+import {
+  createPrescription,
+  getMedicineList,
+  getPatients,
+} from "@/services/api";
+import { Picker } from "@react-native-picker/picker";
 import { useAuth } from "@/context/AuthContext";
 
 const AddPrescriptions = () => {
@@ -19,8 +24,13 @@ const AddPrescriptions = () => {
   const [instruction, setInstruction] = useState("");
   const [doctorId, setDoctorId] = useState("");
   const [patients, setPatients] = useState<Patient[] | null>(null);
-  const [patientName, setPatientName] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<string>("");
+  const [searchText, setSearchText] = useState("");
+  const [medicineList, setMedicineList] = useState<Medicine[]>([]);
+  const [filteredMedicines, setFilteredMedicines] = useState<Medicine[]>([]);
+  const [selectedMedicines, setSelectedMedicines] = useState<
+    { id: string; name: string; quantity: string; usage: string }[]
+  >([]);
   const { user } = useAuth();
 
   const fetchPatient = async () => {
@@ -35,9 +45,9 @@ const AddPrescriptions = () => {
   const fetchMedicine = async () => {
     try {
       const response = await getMedicineList();
-      console.log(response.data);
+      setMedicineList(response.data);
     } catch (error) {
-      console.error("Lỗi khi lấy danh sách bệnh nhân: ", error);
+      console.error("Lỗi khi lấy danh sách thuốc: ", error);
     }
   };
 
@@ -47,8 +57,49 @@ const AddPrescriptions = () => {
     setDoctorId(user?.employee_id);
   }, []);
 
-  const handleAddPrescription = () => {
-    if (!diagnosis || !instruction || !selectedPatient) {
+  useEffect(() => {
+    if (searchText) {
+      const filtered = medicineList.filter((medicine) =>
+        medicine.medicine_name.toLowerCase().includes(searchText.toLowerCase())
+      );
+      setFilteredMedicines(filtered);
+    } else {
+      setFilteredMedicines([]);
+    }
+  }, [searchText]);
+
+  const addMedicine = (medicine) => {
+    if (selectedMedicines.some((item) => item.id === medicine.id)) {
+      Alert.alert("Thông báo", "Thuốc đã được chọn.");
+      return;
+    }
+    setSelectedMedicines((prev) => [
+      ...prev,
+      {
+        id: medicine.id,
+        medicine_name: medicine.medicine_name,
+        quantity: "",
+        usage: "",
+      },
+    ]);
+    setSearchText("");
+    setFilteredMedicines([]);
+  };
+
+  const updateMedicineDetails = (id, field, value) => {
+    setSelectedMedicines((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const handleAddPrescription = async () => {
+    if (
+      !diagnosis ||
+      !instruction ||
+      !selectedPatient ||
+      selectedMedicines.length === 0 ||
+      selectedMedicines.some((item) => !item.quantity || !item.usage)
+    ) {
       Alert.alert("Error", "Vui lòng điền đầy đủ thông tin.");
       return;
     }
@@ -58,17 +109,23 @@ const AddPrescriptions = () => {
       instruction,
       doctor_id: doctorId,
       patient_id: selectedPatient,
+      details: selectedMedicines,
     };
 
-    router.replace("/(tabs)/prescriptions");
-    Alert.alert("Thông báo", "Đơn thuốc được thêm thành công!");
-    console.log(newPrescription);
-
-    // Reset form fields
-    setDiagnosis("");
-    setInstruction("");
-    setPatientName("");
-    setSelectedPatient(""); // Reset patient selection
+    console.log("Đơn thuốc mới: ", newPrescription);
+    console.log(
+      "Chi tiết đơn thuốc: ",
+      newPrescription.medicines,
+      " ===",
+      selectedMedicines
+    );
+    const response = await createPrescription(newPrescription);
+    if (response.success) {
+      router.replace("/(tabs)/prescriptions");
+      Alert.alert("Thông báo", "Đơn thuốc được thêm thành công!");
+    } else {
+      console.log("Thêm đơn thuốc thất bại:", response.errorMessage);
+    }
   };
 
   return (
@@ -96,13 +153,7 @@ const AddPrescriptions = () => {
       <Picker
         selectedValue={selectedPatient}
         style={styles.input}
-        onValueChange={(itemValue, itemIndex) => {
-          setSelectedPatient(itemValue);
-          const selected = patients?.find(
-            (patient) => patient.id === itemValue
-          );
-          setPatientName(selected ? selected.full_name : "");
-        }}
+        onValueChange={(itemValue) => setSelectedPatient(itemValue)}
       >
         <Picker.Item label="Chọn bệnh nhân" value="" />
         {patients?.map((patient) => (
@@ -113,6 +164,53 @@ const AddPrescriptions = () => {
           />
         ))}
       </Picker>
+
+      {/* Search and Add Medicines */}
+      <Text style={styles.label}>Chọn thuốc:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Nhập tên thuốc"
+        value={searchText}
+        onChangeText={setSearchText}
+      />
+      {filteredMedicines.length > 0 && (
+        <FlatList
+          data={filteredMedicines}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.medicineItem}
+              onPress={() => addMedicine(item)}
+            >
+              <Text style={styles.medicineText}>{item.medicine_name}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
+
+      {/* Selected Medicines */}
+      {selectedMedicines.map((medicine) => (
+        <View key={medicine.id} style={styles.selectedMedicineItem}>
+          <Text style={styles.medicineText}>{medicine.medicine_name}</Text>
+          <TextInput
+            style={styles.quantityInput}
+            placeholder="Số lượng"
+            keyboardType="numeric"
+            value={medicine.quantity}
+            onChangeText={(value) =>
+              updateMedicineDetails(medicine.id, "quantity", value)
+            }
+          />
+          <TextInput
+            style={styles.usageInput}
+            placeholder="Cách sử dụng"
+            value={medicine.usage}
+            onChangeText={(value) =>
+              updateMedicineDetails(medicine.id, "usage", value)
+            }
+          />
+        </View>
+      ))}
 
       {/* Save Button */}
       <TouchableOpacity style={styles.button} onPress={handleAddPrescription}>
@@ -152,11 +250,46 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: "#333",
   },
+  medicineItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  medicineText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  selectedMedicineItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  quantityInput: {
+    height: 40,
+    width: 80,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginLeft: 10,
+    backgroundColor: "#fff",
+  },
+  usageInput: {
+    flex: 1,
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginLeft: 10,
+    backgroundColor: "#fff",
+  },
   button: {
     backgroundColor: "#007BFF",
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
+    marginTop: 20,
   },
   buttonText: {
     color: "#fff",
