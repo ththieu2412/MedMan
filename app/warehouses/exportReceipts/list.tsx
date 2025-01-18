@@ -16,21 +16,48 @@ import { useToken } from "@/hooks/useToken";
 import { searchExportReceipts, getERList } from "@/services/api/index"; // Import API functions
 import { useFocusEffect } from "@react-navigation/native";
 import { TextInput } from "react-native";
+import { format } from "date-fns/format";
 
 const ERListScreen = () => {
   const [erList, setErList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [employeeName, setEmployeeName] = useState("");
-  const [warehouseName, setWarehouseName] = useState("");
-  const [isApproved, setIsApproved] = useState(false);
+  const [export_date, setExport_date] = useState(null);
+  const [prescription, setPrescription] = useState("");
+  const [warehouse, setWarehouse] = useState("");
+  const [is_approved, setIsApproved] = useState(false);
   const [isStartPickerVisible, setStartPickerVisible] = useState(false);
   const [isEndPickerVisible, setEndPickerVisible] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const token = useToken();
   const router = useRouter();
+  const formatDateTimeList = (inputDateTime) => {
+    // Chuyển chuỗi thành đối tượng Date
+    const date = new Date(inputDateTime);
 
+    // Lấy ngày, tháng, năm, giờ, phút
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    // Trả về chuỗi định dạng dd/mm/yyyy hh:mm
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  };
+  const formatDateTimeDetail = (isoDate) => {
+    // Chuyển chuỗi ISO thành đối tượng Date
+    const date = new Date(isoDate);
+
+    // Lấy ngày, tháng, năm, giờ, phút
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    // Trả về chuỗi định dạng dd/mm/yyyy hh:mm
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  };
   const fetchListER = async () => {
     try {
       setLoading(true);
@@ -38,7 +65,6 @@ const ERListScreen = () => {
       console.log("response xuất", response.data);
       setErList(response.data || []);
     } catch (error) {
-      console.error("Error fetching all ER records:", error);
       Alert.alert("Error", "An error occurred while fetching records.");
     } finally {
       setLoading(false);
@@ -46,38 +72,22 @@ const ERListScreen = () => {
   };
 
   const fetchFilteredERList = async () => {
-    if (
-      !startDate &&
-      !endDate &&
-      !employeeName &&
-      !warehouseName &&
-      !isApproved
-    ) {
-      Alert.alert("Lỗi", "Vui lòng nhập ít nhất một tham số để tìm kiếm.");
-      return;
-    }
-
-    if (endDate && startDate && endDate < startDate) {
-      Alert.alert("Lỗi", "Ngày kết thúc không được nhỏ hơn ngày bắt đầu.");
+    if (!export_date && !prescription && !warehouse && !is_approved) {
+      Alert.alert("Lỗi", "Vui lòng  chỉ nhập  một tham số để tìm kiếm.");
       return;
     }
 
     try {
       setLoading(true);
       const response = await searchExportReceipts(
-        token,
-        startDate ? startDate.toISOString().split("T")[0] : null,
-        endDate ? endDate.toISOString().split("T")[0] : null,
-        employeeName,
-        warehouseName,
-        isApproved ? "true" : "false"
+        export_date ? export_date.toISOString().split("T")[0] : null,
+        prescription,
+        warehouse,
+        is_approved ? "true" : "false"
       );
-      setErList(response || []);
-    } catch (error) {
-      console.error(
-        "Error searching ER list:",
-        error.response?.data.errorMessage
-      );
+      console;
+      setErList(response.data || []);
+    } catch (error: any) {
       Alert.alert(
         "Error",
         error.response?.data.errorMessage || "An error occurred"
@@ -94,11 +104,12 @@ const ERListScreen = () => {
   );
 
   const resetFilters = () => {
-    setStartDate(null);
-    setEndDate(null);
-    setEmployeeName("");
-    setWarehouseName("");
+    setExport_date(null);
     setIsApproved(false);
+    setPrescription("");
+    setWarehouse("");
+    setWarehouse("");
+
     fetchListER();
   };
 
@@ -125,7 +136,8 @@ const ERListScreen = () => {
       </Text>
       <Text style={styles.erDate}>
         <Ionicons name="calendar-outline" size={16} color="#FF9800" /> Ngày lập:{" "}
-        {item.export_date}
+        {/* {item.export_date} */}
+        {format(new Date(item.export_date), "dd/MM/yyyy HH:mm")}
       </Text>
       <Text style={styles.erDate}>
         <Ionicons name="cash-outline" size={16} color="#FF9800" /> Tổng tiền:{" "}
@@ -179,13 +191,12 @@ const ERListScreen = () => {
         {isSearchExpanded && (
           <View style={styles.searchContainer}>
             <View style={styles.row}>
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 style={[styles.datePickerButton, styles.rowItem]}
                 onPress={() => setStartPickerVisible(true)}
               >
                 <Text style={styles.datePickerText}>
-                  <Ionicons name="calendar-outline" size={16} color="#333" /> Từ
-                  ngày: {showDate(startDate)}
+                  <Ionicons name="calendar-outline" size={16} color="#333" /> Ngày xuất: {showDate(export_date)}
                 </Text>
               </TouchableOpacity>
               <DateTimePickerModal
@@ -193,50 +204,31 @@ const ERListScreen = () => {
                 mode="date"
                 onConfirm={(date) => {
                   setStartPickerVisible(false);
-                  setStartDate(date);
+                  setExport_date(date);
                 }}
                 onCancel={() => setStartPickerVisible(false)}
-              />
-
-              <TouchableOpacity
-                style={[styles.datePickerButton, styles.rowItem]}
-                onPress={() => setEndPickerVisible(true)}
-              >
-                <Text style={styles.datePickerText}>
-                  <Ionicons name="calendar-outline" size={16} color="#333" />{" "}
-                  Đến ngày: {showDate(endDate)}
-                </Text>
-              </TouchableOpacity>
-              <DateTimePickerModal
-                isVisible={isEndPickerVisible}
-                mode="date"
-                onConfirm={(date) => {
-                  setEndPickerVisible(false);
-                  setEndDate(date);
-                }}
-                onCancel={() => setEndPickerVisible(false)}
-              />
+              /> */}
             </View>
 
             <View style={styles.row}>
               <TextInput
                 style={[styles.input, styles.rowItem]}
-                placeholder="Nhân viên"
-                value={employeeName}
-                onChangeText={setEmployeeName}
+                placeholder="Đơn thuốc"
+                value={prescription}
+                onChangeText={setPrescription}
               />
               <TextInput
                 style={[styles.input, styles.rowItem]}
                 placeholder="Nhà kho"
-                value={warehouseName}
-                onChangeText={setWarehouseName}
+                value={warehouse}
+                onChangeText={setWarehouse}
               />
             </View>
 
             <View style={styles.row}>
               <View style={[styles.switchContainer, styles.rowItem]}>
                 <Text>Trạng thái đã duyệt</Text>
-                <Switch value={isApproved} onValueChange={setIsApproved} />
+                <Switch value={is_approved} onValueChange={setIsApproved} />
               </View>
               <TouchableOpacity
                 style={[styles.searchButton, styles.rowItem]}

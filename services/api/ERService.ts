@@ -31,41 +31,39 @@ export const getPrescriptionNoER = async () => {
 };
 // Hàm tìm kiếm phiếu nhập
 export const searchExportReceipts = async (
-  startDate: string,
-  endDate: string,
-  employeeName: string,
-  warehouseName: string,
-  isApproved: string
+  export_date: string,
+  prescription: string,
+  warehouse: string,
+  is_approved: string
 ) => {
   try {
     // Khởi tạo đối tượng URLSearchParams để xây dựng query string
     const params = new URLSearchParams();
 
     // Chỉ thêm tham số vào query nếu nó có giá trị
-    if (startDate) {
-      params.append("start_date", startDate);
+    
+    if (export_date) {
+      params.append("export_date", export_date);
     }
-    if (endDate) {
-      params.append("end_date", endDate);
+    if (prescription) {
+      params.append("prescription", prescription);
     }
-    if (employeeName) {
-      params.append("employee_name", employeeName);
+    if (warehouse) {
+      params.append("warehouse", warehouse);
     }
-    if (warehouseName) {
-      params.append("warehouse_name", warehouseName);
-    }
-    if (isApproved) {
-      params.append("is_approved", isApproved);
-    }
+    // if (is_approved) {
+    //   params.append("is_approved", is_approved);
+    // }
 
     // Tạo URL tìm kiếm với các tham số query đã được thêm
-    const url = `/warehouses/import-receipts/search/?${params.toString()}`;
+    const url = `/warehouses/export-search/?${params.toString()}`;
 
     // Gửi yêu cầu GET với token trong header Authorization
     const response = await api.get(url);
 
     // Log response để kiểm tra (có thể xóa sau khi hoàn thành)
     console.log("Response from API:", response);
+
 
     // Trả về dữ liệu nhận được từ API
     return { success: true, data: response.data};
@@ -81,9 +79,11 @@ export const searchExportReceipts = async (
 // Hàm tạo phiếu nhập
 export const createER = async (ERData: any) => {
   try {
-    const response = await api.post(' /warehouses/warehouse/',{ERData});
-    console.log("datadfsdfsff",ERData)
-    if (response?.data?.id) {
+    
+    const response = await api.post('/warehouses/warehouse/',ERData);
+    console.log("datadfsdfsff",ERData);
+    console.log("datadfsdfsff",response.data.id);
+    if (response?.data) {
       console.log("Cập nhật thành công:", response.data);
       return { success: true, data: response.data };
     }
