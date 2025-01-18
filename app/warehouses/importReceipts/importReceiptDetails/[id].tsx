@@ -281,12 +281,11 @@ const handleExit = () => {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
-          
           <Text style={styles.title}>Chỉnh Sửa Chi Tiết Sản Phẩm</Text>
           <FlatList
             data={productDetails}
             renderItem={renderProductItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, index) => `${item.id}-${index}`} // Kết hợp ID và index để đảm bảo uniqueness
             ListEmptyComponent={<Text>Không có sản phẩm nào để hiển thị.</Text>}
           />
 
