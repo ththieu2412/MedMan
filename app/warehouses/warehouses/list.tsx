@@ -24,6 +24,10 @@ const WarehouseList = () => {
   const [loading, setLoading] = useState(false); // State để kiểm tra trạng thái đang tải
   const router = useRouter();
   const token = useToken();
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false); // Kiểm soát trạng thái mở rộng của phần tìm kiếm
+
+  // Hàm để chuyển đổi trạng thái mở rộng/thu hẹp
+  const toggleSearch = () => setIsSearchExpanded((prev) => !prev);
 
   // Hàm lấy danh sách nhà kho
   const fetchData = async () => {
@@ -102,21 +106,36 @@ const WarehouseList = () => {
   return (
     <View style={{ flex: 1 }}>
       {/* Form tìm kiếm */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Tìm theo địa chỉ kho"
-          value={address}
-          onChangeText={setAddress}
-        />
+      {/* Phần Tìm kiếm */}
+      <View
+        style={[styles.searchContainer, isSearchExpanded ? {} : { height: 50 }]}
+      >
+        {/* Nút mở rộng/thu hẹp */}
+        <TouchableOpacity onPress={toggleSearch} style={styles.searchToggle}>
+          <Text style={styles.searchToggleText}>
+            {isSearchExpanded ? "Thu gọn" : "Mở rộng tìm kiếm"}
+          </Text>
+        </TouchableOpacity>
 
-        {/* Switch để tìm kiếm theo trạng thái kho */}
-        <View style={styles.switchContainer}>
-          <Text>Trạng thái kho</Text>
-          <Switch value={isActive} onValueChange={setIsActive} />
-        </View>
+        {/* Form tìm kiếm chỉ hiển thị khi mở rộng */}
+        {isSearchExpanded && (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="Tìm theo địa chỉ kho"
+              value={address}
+              onChangeText={setAddress}
+            />
 
-        <Button title="Tìm kiếm" onPress={handleSearch} />
+            {/* Switch để tìm kiếm theo trạng thái kho */}
+            <View style={styles.switchContainer}>
+              <Text>Trạng thái kho</Text>
+              <Switch value={isActive} onValueChange={setIsActive} />
+            </View>
+
+            <Button title="Tìm kiếm" onPress={handleSearch} />
+          </>
+        )}
       </View>
 
       {/* Nút Lấy lại tất cả kho */}
@@ -149,6 +168,22 @@ const WarehouseList = () => {
 
 // Styles cho giao diện
 const styles = StyleSheet.create({
+  searchToggle: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 5,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  searchToggleText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1E88E5",
+    height:30,
+    alignContent:"center"
+  },
+
   container: {
     padding: 10,
   },
